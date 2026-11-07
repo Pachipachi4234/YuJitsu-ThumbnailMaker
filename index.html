@@ -18,7 +18,7 @@
     <header class="flex justify-between items-center border-b border-[#30363d] pb-2 flex-none">
         <div>
             <h1 class="text-xl font-bold text-[#58a6ff]">YuJitsu ThumbnailMaker <span class="text-xs text-yellow-400 font-normal">by YuJitsu</span></h1>
-            <p class="text-xs text-gray-400">YouTube用1280x720 爆速サムネイル作成 ＆ AutoStudioテロップ装飾完全同期</p>
+            <p class="text-xs text-gray-400">YouTube用1280x720 爆速サムネイル作成 ＆ AutoStudioフォント・装飾完全同期</p>
         </div>
         <div class="flex items-center gap-2">
             <button id="exportPngBtn" class="bg-[#8957e5] hover:bg-[#9d6cfa] text-white text-xs px-4 py-2 rounded font-bold transition flex items-center gap-1 shadow-lg">
@@ -58,10 +58,10 @@
                 </div>
             </div>
 
-            <!-- ③ テキスト追加 ＆ AutoStudio テロップ装飾設定 -->
+            <!-- ③ テキスト追加 ＆ フォント・AutoStudio テロップ装飾設定 -->
             <div class="space-y-2 border-b border-[#30363d] pb-3 bg-[#010409] p-2.5 rounded border border-[#30363d]">
                 <label class="text-xs font-bold text-[#79c0ff] flex justify-between items-center">
-                    📝 3. テキスト ＆ AutoStudio 装飾
+                    📝 3. テキスト ＆ フォント装飾
                 </label>
                 
                 <button id="addTextBtn" class="bg-[#238636] hover:bg-[#2ea043] text-white text-xs py-1.5 rounded font-bold w-full transition">+ 新規テキストを追加</button>
@@ -73,12 +73,23 @@
                     </div>
 
                     <div>
-                        <span class="text-[10px] text-gray-400">スタイルプリセット</span>
+                        <span class="text-[10px] text-gray-400">スタイルプリセット（配色＋フォント）</span>
                         <select id="telopPreset" class="input-ui">
-                            <option value="autostudio">AutoStudio 標準 (白×黒×赤縁)</option>
-                            <option value="ytpop">YouTube POP (黄×黒×赤縁)</option>
-                            <option value="cyber">Cyber Neon (青×白×発光)</option>
-                            <option value="minimal">Minimal (白文字×シャドウ)</option>
+                            <option value="autostudio">AutoStudio 標準 (ゴシック×白赤縁)</option>
+                            <option value="ytpop">YouTube POP (インパクト×黄赤縁)</option>
+                            <option value="cyber">Cyber Neon (等幅×青発光)</option>
+                            <option value="mincho">極太明朝 (明朝体×和風白黒)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <span class="text-[10px] text-gray-400">フォント種類</span>
+                        <select id="fontFamily" class="input-ui">
+                            <option value="sans-serif">ゴシック体 (Sans-Serif)</option>
+                            <option value="'Impact', sans-serif">インパクト (Impact)</option>
+                            <option value="serif">明朝体 (Serif)</option>
+                            <option value="'Comic Sans MS', cursive, sans-serif">ポップ体 (Pop)</option>
+                            <option value="monospace">等幅フォント (Monospace)</option>
                         </select>
                     </div>
 
@@ -156,7 +167,7 @@
     let subScaleVal = 1.0;
 
     let textLayers = [];
-    let selectedLayer = null; // 'sub' or textLayer instance
+    let selectedLayer = null;
 
     // --- Inputs & Controls ---
     const bgFileInput = document.getElementById('bgFileInput');
@@ -174,6 +185,7 @@
     const addTextBtn = document.getElementById('addTextBtn');
     const textControls = document.getElementById('textControls');
     const textContentInput = document.getElementById('textContent');
+    const fontFamilySelect = document.getElementById('fontFamily');
     const textColorInput = document.getElementById('textColor');
     const textSizeInput = document.getElementById('textSize');
     const innerColorInput = document.getElementById('innerBorderColor');
@@ -240,6 +252,7 @@
             text: "新作実況！配信スタート✨",
             x: 640,
             y: 200,
+            font: "sans-serif",
             color: "#ffffff",
             size: 70,
             innerColor: "#000000",
@@ -259,6 +272,7 @@
         if (layer && layer !== 'sub') {
             textControls.classList.remove('hidden');
             textContentInput.value = layer.text;
+            fontFamilySelect.value = layer.font || "sans-serif";
             textColorInput.value = layer.color;
             textSizeInput.value = layer.size;
             innerColorInput.value = layer.innerColor;
@@ -277,6 +291,7 @@
     function updateSelectedText() {
         if (!selectedLayer || selectedLayer === 'sub') return;
         selectedLayer.text = textContentInput.value;
+        selectedLayer.font = fontFamilySelect.value;
         selectedLayer.color = textColorInput.value;
         selectedLayer.size = parseInt(textSizeInput.value);
         selectedLayer.innerColor = innerColorInput.value;
@@ -288,20 +303,24 @@
         render();
     }
 
-    [textContentInput, textColorInput, textSizeInput, innerColorInput, innerWidthInput, outerColorInput, outerWidthInput, shadowColorInput, shadowBlurInput].forEach(inp => {
+    [textContentInput, fontFamilySelect, textColorInput, textSizeInput, innerColorInput, innerWidthInput, outerColorInput, outerWidthInput, shadowColorInput, shadowBlurInput].forEach(inp => {
         inp.oninput = updateSelectedText;
     });
 
     telopPresetSelect.onchange = (e) => {
         const mode = e.target.value;
         if (mode === 'autostudio') {
+            fontFamilySelect.value = "sans-serif";
             textColorInput.value = "#ffffff"; innerColorInput.value = "#000000"; innerWidthInput.value = 8; outerColorInput.value = "#ff0000"; outerWidthInput.value = 6;
         } else if (mode === 'ytpop') {
+            fontFamilySelect.value = "'Impact', sans-serif";
             textColorInput.value = "#ffee00"; innerColorInput.value = "#000000"; innerWidthInput.value = 8; outerColorInput.value = "#cc0000"; outerWidthInput.value = 8;
         } else if (mode === 'cyber') {
+            fontFamilySelect.value = "monospace";
             textColorInput.value = "#00ffff"; innerColorInput.value = "#ffffff"; innerWidthInput.value = 4; outerColorInput.value = "#0055ff"; outerWidthInput.value = 10;
-        } else if (mode === 'minimal') {
-            textColorInput.value = "#ffffff"; innerColorInput.value = "#000000"; innerWidthInput.value = 3; outerColorInput.value = "#000000"; outerWidthInput.value = 0;
+        } else if (mode === 'mincho') {
+            fontFamilySelect.value = "serif";
+            textColorInput.value = "#ffffff"; innerColorInput.value = "#000000"; innerWidthInput.value = 10; outerColorInput.value = "#ffffff"; outerWidthInput.value = 2;
         }
         updateSelectedText();
     };
@@ -327,11 +346,11 @@
     canvas.onmousedown = (e) => {
         const { x, y } = getCanvasCoords(e);
 
-        // テキストレイヤーのヒットテスト（逆順）
+        // テキストレイヤーのヒットテスト
         for (let i = textLayers.length - 1; i >= 0; i--) {
             const layer = textLayers[i];
             const dist = Math.hypot(x - layer.x, y - layer.y);
-            if (dist < 150) { // 簡易当たり判定
+            if (dist < 150) {
                 selectTextLayer(layer);
                 isDragging = true;
                 dragOffset = { x: x - layer.x, y: y - layer.y };
@@ -381,7 +400,6 @@
             ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
             ctx.restore();
         } else {
-            // 背景未読み込み時のグラデーション
             const grad = ctx.createLinearGradient(0, 0, 1280, 720);
             grad.addColorStop(0, '#1a1e29');
             grad.addColorStop(1, '#0a0c10');
@@ -405,10 +423,11 @@
             ctx.restore();
         }
 
-        // 3. テキスト描画 (AutoStudio 2重縁取りエンジン)
+        // 3. テキスト描画 (AutoStudio 2重縁取り＋フォント設定エンジン)
         textLayers.forEach(layer => {
             ctx.save();
-            ctx.font = `bold ${layer.size}px sans-serif`;
+            const fontName = layer.font || 'sans-serif';
+            ctx.font = `bold ${layer.size}px ${fontName}`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.lineJoin = 'round';
@@ -431,7 +450,7 @@
                     ctx.strokeStyle = layer.outerColor;
                     ctx.lineWidth = layer.innerWidth + (layer.outerWidth * 2);
                     ctx.strokeText(line, layer.x, currentY);
-                    ctx.shadowBlur = 0; // 次の層からは影を消す
+                    ctx.shadowBlur = 0;
                 }
 
                 // 内側縁取り (1層目)
@@ -464,7 +483,6 @@
 
     // --- PNGエクスポート ---
     document.getElementById('exportPngBtn').onclick = () => {
-        // 選択枠を消すために未選択状態で1回レンダリング
         const prevSelected = selectedLayer;
         selectedLayer = null;
         render();

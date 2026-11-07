@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>YuJitsu ThumbnailMaker | 爆速サムネイル作成ツール</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #0d1117; color: #c9d1d9; font-family: sans-serif; overflow: hidden; }
+        .panel { background: #161b22; border: 1px solid #30363d; border-radius: 0.5rem; }
+        .input-ui { background: #010409; border: 1px solid #30363d; color: #c9d1d9; border-radius: 0.375rem; padding: 0.25rem 0.5rem; width: 100%; font-size: 0.75rem; }
+        .btn-mode { font-size: 0.75rem; padding: 0.375rem 0.5rem; border-radius: 0.375rem; font-weight: bold; border: 1px solid #30363d; cursor: pointer; text-align: center; }
+        .btn-mode.active { border-color: #58a6ff; color: #ffffff; background-color: #21262d; }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col p-4 gap-4">
+
+    <!-- ヘッダー -->
+    <header class="flex justify-between items-center border-b border-[#30363d] pb-2 flex-none">
+        <div>
+            <h1 class="text-xl font-bold text-[#58a6ff]">YuJitsu ThumbnailMaker <span class="text-xs text-yellow-400 font-normal">by YuJitsu</span></h1>
+            <p class="text-xs text-gray-400">YouTube用1280x720 爆速サムネイル作成 ＆ AutoStudioテロップ装飾完全同期</p>
+        </div>
+        <div class="flex items-center gap-2">
+            <button id="exportPngBtn" class="bg-[#8957e5] hover:bg-[#9d6cfa] text-white text-xs px-4 py-2 rounded font-bold transition flex items-center gap-1 shadow-lg">
+                <span>💾</span> サムネイルをPNGで書き出す
+            </button>
+        </div>
+    </header>
+
+    <!-- メインエリア -->
+    <div class="flex-1 flex gap-4 min-h-0">
+        
+        <!-- 左：操作パネル -->
+        <div class="w-80 panel p-4 flex flex-col gap-3 overflow-y-auto flex-none">
+            
+            <!-- ① 背景画像・エフェクト設定 -->
+            <div class="space-y-2 border-b border-[#30363d] pb-3 bg-[#010409] p-2.5 rounded border border-[#30363d]">
+                <label class="text-xs font-bold text-[#79c0ff]">🖼️ 1. 背景画像設定</label>
+                <input type="file" id="bgFileInput" accept="image/*" class="input-ui cursor-pointer">
+                
+                <div class="space-y-1 pt-1">
+                    <div class="flex justify-between text-[10px] text-gray-400"><span>背景ぼかし (Blur)</span><span id="blurVal">0px</span></div>
+                    <input type="range" id="bgBlur" min="0" max="20" value="0" class="w-full">
+
+                    <div class="flex justify-between text-[10px] text-gray-400"><span>背景明るさ (Brightness)</span><span id="brightVal">100%</span></div>
+                    <input type="range" id="bgBrightness" min="20" max="150" value="100" class="w-full">
+                </div>
+            </div>
+
+            <!-- ② 立ち絵 / サブ画像追加 -->
+            <div class="space-y-2 border-b border-[#30363d] pb-3">
+                <label class="text-xs font-bold text-[#79c0ff]">🧍 2. 立ち絵 / サブ画像挿入</label>
+                <input type="file" id="subFileInput" accept="image/*" class="input-ui cursor-pointer">
+                <div id="subImageControls" class="space-y-1.5 hidden pt-1">
+                    <div class="flex justify-between text-[10px] text-gray-400"><span>立ち絵サイズ</span><span id="subScaleVal">1.0</span></div>
+                    <input type="range" id="subScale" min="0.2" max="2.5" step="0.05" value="1.0" class="w-full">
+                    <button id="removeSubBtn" class="bg-red-900/40 hover:bg-red-800 text-red-300 text-[10px] py-1 rounded w-full border border-red-800">立ち絵を削除</button>
+                </div>
+            </div>
+
+            <!-- ③ テキスト追加 ＆ AutoStudio テロップ装飾設定 -->
+            <div class="space-y-2 border-b border-[#30363d] pb-3 bg-[#010409] p-2.5 rounded border border-[#30363d]">
+                <label class="text-xs font-bold text-[#79c0ff] flex justify-between items-center">
+                    📝 3. テキスト ＆ AutoStudio 装飾
+                </label>
+                
+                <button id="addTextBtn" class="bg-[#238636] hover:bg-[#2ea043] text-white text-xs py-1.5 rounded font-bold w-full transition">+ 新規テキストを追加</button>
+
+                <div id="textControls" class="space-y-2 hidden pt-2 border-t border-[#30363d]">
+                    <div>
+                        <span class="text-[10px] text-gray-400">テキスト内容</span>
+                        <textarea id="textContent" class="input-ui h-12 text-xs"></textarea>
+                    </div>
+
+                    <div>
+                        <span class="text-[10px] text-gray-400">スタイルプリセット</span>
+                        <select id="telopPreset" class="input-ui">
+                            <option value="autostudio">AutoStudio 標準 (白×黒×赤縁)</option>
+                            <option value="ytpop">YouTube POP (黄×黒×赤縁)</option>
+                            <option value="cyber">Cyber Neon (青×白×発光)</option>
+                            <option value="minimal">Minimal (白文字×シャドウ)</option>
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <span class="text-[10px] text-gray-400">文字色</span>
+                            <input type="color" id="textColor" value="#ffffff" class="w-full h-6 rounded cursor-pointer bg-transparent">
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-gray-400">文字サイズ</span>
+                            <input type="number" id="textSize" value="70" min="20" max="200" class="input-ui">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <span class="text-[10px] text-gray-400">内側の縁色</span>
+                            <input type="color" id="innerBorderColor" value="#000000" class="w-full h-6 rounded cursor-pointer bg-transparent">
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-gray-400">内側の太さ</span>
+                            <input type="number" id="innerBorderWidth" value="8" min="0" max="30" class="input-ui">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <span class="text-[10px] text-gray-400">外側の縁色</span>
+                            <input type="color" id="outerBorderColor" value="#ff0000" class="w-full h-6 rounded cursor-pointer bg-transparent">
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-gray-400">外側の太さ</span>
+                            <input type="number" id="outerBorderWidth" value="6" min="0" max="30" class="input-ui">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <span class="text-[10px] text-gray-400">影の色</span>
+                            <input type="color" id="shadowColor" value="#000000" class="w-full h-6 rounded cursor-pointer bg-transparent">
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-gray-400">影・発光 (Blur)</span>
+                            <input type="number" id="shadowBlur" value="10" min="0" max="50" class="input-ui">
+                        </div>
+                    </div>
+
+                    <button id="removeTextBtn" class="bg-red-900/40 hover:bg-red-800 text-red-300 text-[10px] py-1 rounded w-full border border-red-800 mt-2">選択テキストを削除</button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- 右：サムネイルプレビューキャンバス -->
+        <div class="flex-1 panel relative flex flex-col items-center justify-center p-4 bg-[#010409] overflow-hidden">
+            <div class="text-xs text-gray-400 absolute top-2 left-2 z-10">🖥️ サムネイルプレビュー (1280 x 720) — マウスでレイヤーをドラッグ移動できます</div>
+            <div class="relative max-w-full max-h-full flex items-center justify-center">
+                <canvas id="thumbCanvas" width="1280" height="720" class="max-w-full max-h-[75vh] border border-gray-700 shadow-2xl cursor-grab active:cursor-grabbing object-contain bg-black"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+<script>
+    // --- Canvas Setup ---
+    const canvas = document.getElementById('thumbCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let bgImage = null;
+    let bgBlurVal = 0;
+    let bgBrightnessVal = 100;
+
+    let subImage = null;
+    let subPos = { x: 900, y: 360 };
+    let subScaleVal = 1.0;
+
+    let textLayers = [];
+    let selectedLayer = null; // 'sub' or textLayer instance
+
+    // --- Inputs & Controls ---
+    const bgFileInput = document.getElementById('bgFileInput');
+    const bgBlurInput = document.getElementById('bgBlur');
+    const bgBrightnessInput = document.getElementById('bgBrightness');
+    const blurValDisp = document.getElementById('blurVal');
+    const brightValDisp = document.getElementById('brightVal');
+
+    const subFileInput = document.getElementById('subFileInput');
+    const subImageControls = document.getElementById('subImageControls');
+    const subScaleInput = document.getElementById('subScale');
+    const subScaleValDisp = document.getElementById('subScaleVal');
+    const removeSubBtn = document.getElementById('removeSubBtn');
+
+    const addTextBtn = document.getElementById('addTextBtn');
+    const textControls = document.getElementById('textControls');
+    const textContentInput = document.getElementById('textContent');
+    const textColorInput = document.getElementById('textColor');
+    const textSizeInput = document.getElementById('textSize');
+    const innerColorInput = document.getElementById('innerBorderColor');
+    const innerWidthInput = document.getElementById('innerBorderWidth');
+    const outerColorInput = document.getElementById('outerBorderColor');
+    const outerWidthInput = document.getElementById('outerBorderWidth');
+    const shadowColorInput = document.getElementById('shadowColor');
+    const shadowBlurInput = document.getElementById('shadowBlur');
+    const telopPresetSelect = document.getElementById('telopPreset');
+    const removeTextBtn = document.getElementById('removeTextBtn');
+
+    // 背景画像の読み込み
+    bgFileInput.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            const img = new Image();
+            img.onload = () => { bgImage = img; render(); };
+            img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+    };
+
+    bgBlurInput.oninput = (e) => { bgBlurVal = e.target.value; blurValDisp.innerText = `${bgBlurVal}px`; render(); };
+    bgBrightnessInput.oninput = (e) => { bgBrightnessVal = e.target.value; brightValDisp.innerText = `${bgBrightnessVal}%`; render(); };
+
+    // 立ち絵・サブ画像の読み込み
+    subFileInput.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            const img = new Image();
+            img.onload = () => {
+                subImage = img;
+                subPos = { x: 960, y: 360 };
+                subImageControls.classList.remove('hidden');
+                selectedLayer = 'sub';
+                render();
+            };
+            img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+    };
+
+    subScaleInput.oninput = (e) => {
+        subScaleVal = parseFloat(e.target.value);
+        subScaleValDisp.innerText = subScaleVal.toFixed(2);
+        render();
+    };
+
+    removeSubBtn.onclick = () => {
+        subImage = null;
+        subImageControls.classList.add('hidden');
+        if (selectedLayer === 'sub') selectedLayer = null;
+        render();
+    };
+
+    // テキストレイヤー追加
+    addTextBtn.onclick = () => {
+        const newLayer = {
+            id: Date.now(),
+            text: "新作実況！配信スタート✨",
+            x: 640,
+            y: 200,
+            color: "#ffffff",
+            size: 70,
+            innerColor: "#000000",
+            innerWidth: 8,
+            outerColor: "#ff0000",
+            outerWidth: 6,
+            shadowColor: "#000000",
+            shadowBlur: 10
+        };
+        textLayers.push(newLayer);
+        selectTextLayer(newLayer);
+        render();
+    };
+
+    function selectTextLayer(layer) {
+        selectedLayer = layer;
+        if (layer && layer !== 'sub') {
+            textControls.classList.remove('hidden');
+            textContentInput.value = layer.text;
+            textColorInput.value = layer.color;
+            textSizeInput.value = layer.size;
+            innerColorInput.value = layer.innerColor;
+            innerWidthInput.value = layer.innerWidth;
+            outerColorInput.value = layer.outerColor;
+            outerWidthInput.value = layer.outerWidth;
+            shadowColorInput.value = layer.shadowColor;
+            shadowBlurInput.value = layer.shadowBlur;
+        } else {
+            textControls.classList.add('hidden');
+        }
+        render();
+    }
+
+    // テキストプロパティのリアルタイム更新
+    function updateSelectedText() {
+        if (!selectedLayer || selectedLayer === 'sub') return;
+        selectedLayer.text = textContentInput.value;
+        selectedLayer.color = textColorInput.value;
+        selectedLayer.size = parseInt(textSizeInput.value);
+        selectedLayer.innerColor = innerColorInput.value;
+        selectedLayer.innerWidth = parseInt(innerWidthInput.value);
+        selectedLayer.outerColor = outerColorInput.value;
+        selectedLayer.outerWidth = parseInt(outerWidthInput.value);
+        selectedLayer.shadowColor = shadowColorInput.value;
+        selectedLayer.shadowBlur = parseInt(shadowBlurInput.value);
+        render();
+    }
+
+    [textContentInput, textColorInput, textSizeInput, innerColorInput, innerWidthInput, outerColorInput, outerWidthInput, shadowColorInput, shadowBlurInput].forEach(inp => {
+        inp.oninput = updateSelectedText;
+    });
+
+    telopPresetSelect.onchange = (e) => {
+        const mode = e.target.value;
+        if (mode === 'autostudio') {
+            textColorInput.value = "#ffffff"; innerColorInput.value = "#000000"; innerWidthInput.value = 8; outerColorInput.value = "#ff0000"; outerWidthInput.value = 6;
+        } else if (mode === 'ytpop') {
+            textColorInput.value = "#ffee00"; innerColorInput.value = "#000000"; innerWidthInput.value = 8; outerColorInput.value = "#cc0000"; outerWidthInput.value = 8;
+        } else if (mode === 'cyber') {
+            textColorInput.value = "#00ffff"; innerColorInput.value = "#ffffff"; innerWidthInput.value = 4; outerColorInput.value = "#0055ff"; outerWidthInput.value = 10;
+        } else if (mode === 'minimal') {
+            textColorInput.value = "#ffffff"; innerColorInput.value = "#000000"; innerWidthInput.value = 3; outerColorInput.value = "#000000"; outerWidthInput.value = 0;
+        }
+        updateSelectedText();
+    };
+
+    removeTextBtn.onclick = () => {
+        if (!selectedLayer || selectedLayer === 'sub') return;
+        textLayers = textLayers.filter(l => l.id !== selectedLayer.id);
+        selectTextLayer(null);
+    };
+
+    // --- マウスによるレイヤー移動（ドラッグ＆ドロップ） ---
+    let isDragging = false;
+    let dragOffset = { x: 0, y: 0 };
+
+    function getCanvasCoords(e) {
+        const rect = canvas.getBoundingClientRect();
+        return {
+            x: (e.clientX - rect.left) * (canvas.width / rect.width),
+            y: (e.clientY - rect.top) * (canvas.height / rect.height)
+        };
+    }
+
+    canvas.onmousedown = (e) => {
+        const { x, y } = getCanvasCoords(e);
+
+        // テキストレイヤーのヒットテスト（逆順）
+        for (let i = textLayers.length - 1; i >= 0; i--) {
+            const layer = textLayers[i];
+            const dist = Math.hypot(x - layer.x, y - layer.y);
+            if (dist < 150) { // 簡易当たり判定
+                selectTextLayer(layer);
+                isDragging = true;
+                dragOffset = { x: x - layer.x, y: y - layer.y };
+                return;
+            }
+        }
+
+        // 立ち絵レイヤーのヒットテスト
+        if (subImage) {
+            const dist = Math.hypot(x - subPos.x, y - subPos.y);
+            if (dist < 200) {
+                selectedLayer = 'sub';
+                selectTextLayer('sub');
+                isDragging = true;
+                dragOffset = { x: x - subPos.x, y: y - subPos.y };
+                return;
+            }
+        }
+
+        selectTextLayer(null);
+    };
+
+    canvas.onmousemove = (e) => {
+        if (!isDragging || !selectedLayer) return;
+        const { x, y } = getCanvasCoords(e);
+        if (selectedLayer === 'sub') {
+            subPos.x = x - dragOffset.x;
+            subPos.y = y - dragOffset.y;
+        } else {
+            selectedLayer.x = x - dragOffset.x;
+            selectedLayer.y = y - dragOffset.y;
+        }
+        render();
+    };
+
+    canvas.onmouseup = () => isDragging = false;
+    canvas.onmouseleave = () => isDragging = false;
+
+    // --- 🎨 メインレンダリングループ ---
+    function render() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // 1. 背景描画
+        if (bgImage) {
+            ctx.save();
+            ctx.filter = `blur(${bgBlurVal}px) brightness(${bgBrightnessVal}%)`;
+            ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
+            ctx.restore();
+        } else {
+            // 背景未読み込み時のグラデーション
+            const grad = ctx.createLinearGradient(0, 0, 1280, 720);
+            grad.addColorStop(0, '#1a1e29');
+            grad.addColorStop(1, '#0a0c10');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // 2. 立ち絵 / サブ画像描画
+        if (subImage) {
+            ctx.save();
+            const w = subImage.width * subScaleVal;
+            const h = subImage.height * subScaleVal;
+            ctx.translate(subPos.x, subPos.y);
+            ctx.drawImage(subImage, -w / 2, -h / 2, w, h);
+
+            if (selectedLayer === 'sub') {
+                ctx.strokeStyle = '#58a6ff';
+                ctx.lineWidth = 4;
+                ctx.strokeRect(-w / 2, -h / 2, w, h);
+            }
+            ctx.restore();
+        }
+
+        // 3. テキスト描画 (AutoStudio 2重縁取りエンジン)
+        textLayers.forEach(layer => {
+            ctx.save();
+            ctx.font = `bold ${layer.size}px sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.lineJoin = 'round';
+
+            const lines = layer.text.split('\n');
+            const lineHeight = layer.size * 1.2;
+            const startY = layer.y - ((lines.length - 1) * lineHeight) / 2;
+
+            lines.forEach((line, idx) => {
+                const currentY = startY + (idx * lineHeight);
+
+                // 影・発光 (最下層)
+                if (layer.shadowBlur > 0) {
+                    ctx.shadowColor = layer.shadowColor;
+                    ctx.shadowBlur = layer.shadowBlur;
+                }
+
+                // 外側縁取り (2層目)
+                if (layer.outerWidth > 0) {
+                    ctx.strokeStyle = layer.outerColor;
+                    ctx.lineWidth = layer.innerWidth + (layer.outerWidth * 2);
+                    ctx.strokeText(line, layer.x, currentY);
+                    ctx.shadowBlur = 0; // 次の層からは影を消す
+                }
+
+                // 内側縁取り (1層目)
+                if (layer.innerWidth > 0) {
+                    ctx.strokeStyle = layer.innerColor;
+                    ctx.lineWidth = layer.innerWidth;
+                    ctx.strokeText(line, layer.x, currentY);
+                    ctx.shadowBlur = 0;
+                }
+
+                // メイン文字塗りつぶし
+                ctx.fillStyle = layer.color;
+                ctx.fillText(line, layer.x, currentY);
+            });
+
+            // 選択枠表示
+            if (selectedLayer && selectedLayer.id === layer.id) {
+                const metrics = ctx.measureText(lines[0]);
+                const boxW = metrics.width + 40;
+                const boxH = lines.length * lineHeight + 20;
+                ctx.strokeStyle = '#58a6ff';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([6, 6]);
+                ctx.strokeRect(layer.x - boxW / 2, layer.y - boxH / 2, boxW, boxH);
+            }
+
+            ctx.restore();
+        });
+    }
+
+    // --- PNGエクスポート ---
+    document.getElementById('exportPngBtn').onclick = () => {
+        // 選択枠を消すために未選択状態で1回レンダリング
+        const prevSelected = selectedLayer;
+        selectedLayer = null;
+        render();
+
+        const a = document.createElement('a');
+        a.href = canvas.toDataURL('image/png');
+        a.download = `yu_jitsu_thumbnail_${Date.now()}.png`;
+        a.click();
+
+        selectedLayer = prevSelected;
+        render();
+    };
+
+    // 初期サンプルテキスト
+    addTextBtn.click();
+</script>
+</body>
+</html>

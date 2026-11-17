@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>YuJitsu ThumbnailMaker Pro v2.3</title>
+    <title>YuJitsu ThumbnailMaker Pro v2.3.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- 日本語フォント一式 -->
     <link href="https://fonts.googleapis.com/css2?family=Corporate+Logo+Rounded:wght@700&family=Dela+Gothic+One&family=DotGothic16&family=Kaisei+Tokumin:wght@700&family=Kiwi+Maru:wght@500&family=M+PLUS+Rounded+1c:wght@800&family=Mochiy+Pop+P+One&family=Potta+One&family=Reggae+One&family=RocknRoll+One&family=Yusei+Magic&family=Zen+Maru+Gothic:wght@900&display=swap" rel="stylesheet">
@@ -23,7 +23,7 @@
     <!-- ヘッダー -->
     <header class="flex justify-between items-center border-b border-[#30363d] pb-2 flex-none">
         <div>
-            <h1 class="text-lg font-bold text-[#58a6ff]">YuJitsu ThumbnailMaker <span class="text-xs text-purple-400 font-normal">Pro v2.3</span></h1>
+            <h1 class="text-lg font-bold text-[#58a6ff]">YuJitsu ThumbnailMaker <span class="text-xs text-purple-400 font-normal">Pro v2.3.1</span></h1>
             <p class="text-[11px] text-gray-400">図形ルビ変形(角丸/台形/斜め/多角形)・独自プラグイン(.shml)・A+L開発者隠しページ対応</p>
         </div>
         <div class="flex items-center gap-2">
@@ -386,7 +386,7 @@
                     <ol class="list-decimal list-inside space-y-1 text-gray-300">
                         <li>メモ帳やテキストエディタ（VSCodeなど）を開き、HTML形式でコードを書きます。</li>
                         <li>保存するときにファイル名の拡張子を <strong><code class="text-emerald-300">.shml</code></strong> にして保存します（例：<code class="text-gray-400">syuchusen_plugin.shml</code>）。</li>
-                        <li>上部ヘッダーの「<strong>🔌 プラグイン (.shml) 読込</strong>」ボタンから選択すると、既存HTMLの一番下（<code class="text-gray-400"><body></code>末尾）にそのまま追加され、内の <code class="text-gray-400"><script></code> も自動実行されます！</li>
+                        <li>上部ヘッダーの「<strong>🔌 プラグイン (.shml) 読込</strong>」ボタンから選択すると、既存HTMLの一番下（<code class="text-gray-400"><body></code>末尾）にそのまま追加され、内のスクリプトも自動実行されます！</li>
                     </ol>
                 </div>
 
@@ -404,46 +404,54 @@
 
                 <div class="space-y-1.5">
                     <div class="flex justify-between items-center">
-                        <h3 class="text-sm font-bold text-[#79c0ff]">💡 サンプルコード（そのまま .shml で保存して使えるよ）</h3>
+                        <h3 class="text-sm font-bold text-[#79c0ff]">💡 サンプルコード（コピーボタンを押すと .shml 用コードを取得できます）</h3>
                         <button id="copySampleShmlBtn" class="bg-gray-800 hover:bg-gray-700 text-gray-200 px-2 py-0.5 rounded border border-gray-600 text-[10px]">📋 コピー</button>
                     </div>
-                    <pre id="sampleShmlCode" class="bg-[#010409] p-3 rounded border border-[#30363d] font-mono text-[11px] text-emerald-300 overflow-x-auto"><!-- ゆ実サムネ用 爆速プリセット追加プラグイン (.shml) -->
-<div id="yukkuri-preset-plugin" style="position:fixed; bottom:16px; right:16px; background:#161b22; border:2px solid #10b981; padding:10px; border-radius:8px; z-index:40;">
-  <div style="font-size:11px; font-weight:bold; color:#34d399; margin-bottom:6px;">🔌 ゆっくり文字プリセット</div>
-  <button id="btn-add-reimu" style="background:#dc2626; color:white; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:bold; cursor:pointer;">🎀 霊夢風テロップ追加</button>
-</div>
-
-<script>
-  document.getElementById('btn-add-reimu').onclick = () => {
-    const layer = {
-      id: Date.now(),
-      type: 'text',
-      name: '霊夢テロップ',
-      text: 'ゆっくりしていってね！',
-      x: 640, y: 600,
-      font: "'Corporate Logo Rounded', sans-serif",
-      size: 76, rotation: 0, align: 'center', curve: 0,
-      isBold: true, isItalic: false, isUnderline: false, isStrike: false,
-      colors: ['#ffffff', '#ffcccc'],
-      innerColor: '#7f1d1d', innerWidth: 10,
-      outerColor: '#ef4444', outerWidth: 6,
-      shadowColor: '#000000', shadowBlur: 12
-    };
-    layers.push(layer);
-    selectLayer(layer);
-  };
-</script></pre>
+                    <pre id="sampleShmlPreview" class="bg-[#010409] p-3 rounded border border-[#30363d] font-mono text-[11px] text-emerald-300 overflow-x-auto"></pre>
                 </div>
             </div>
         </div>
     </div>
 
 <script>
+    // サンプルコードをJS側から安全にテキストセット（HTMLパース崩れ完全防止）
+    const SAMPLE_SHML_TEXT = [
+        '<!-- ゆ実サムネ用 爆速プリセット追加プラグイン (.shml) -->',
+        '<div id="yukkuri-preset-plugin" style="position:fixed; bottom:16px; right:16px; background:#161b22; border:2px solid #10b981; padding:10px; border-radius:8px; z-index:40;">',
+        '  <div style="font-size:11px; font-weight:bold; color:#34d399; margin-bottom:6px;">🔌 ゆっくり文字プリセット</div>',
+        '  <button id="btn-add-reimu" style="background:#dc2626; color:white; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:bold; cursor:pointer;">🎀 霊夢風テロップ追加</button>',
+        '</div>',
+        '',
+        '<' + 'script>',
+        "  document.getElementById('btn-add-reimu').onclick = () => {",
+        '    const layer = {',
+        '      id: Date.now(),',
+        "      type: 'text',",
+        "      name: '霊夢テロップ',",
+        "      text: 'ゆっくりしていってね！',",
+        '      x: 640, y: 600,',
+        '      font: "\'Corporate Logo Rounded\', sans-serif",',
+        "      size: 76, rotation: 0, align: 'center', curve: 0,",
+        '      isBold: true, isItalic: false, isUnderline: false, isStrike: false,',
+        "      colors: ['#ffffff', '#ffcccc'],",
+        "      innerColor: '#7f1d1d', innerWidth: 10,",
+        "      outerColor: '#ef4444', outerWidth: 6,",
+        "      shadowColor: '#000000', shadowBlur: 12",
+        '    };',
+        '    layers.push(layer);',
+        '    selectLayer(layer);',
+        '  };',
+        '</' + 'script>'
+    ].join('\n');
+
+    document.getElementById('sampleShmlPreview').textContent = SAMPLE_SHML_TEXT;
+
     // ベースHTMLの初期スナップショットを保持（ダウンロード用）
     const INITIAL_BASE_HTML = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
 
     const canvas = document.getElementById('mainCanvas');
     const ctx = canvas.getContext('2d');
+    const leftControlPanel = document.getElementById('leftControlPanel');
 
     let bgImage = null;
     let bgBlur = 0;
@@ -478,7 +486,6 @@
         pressedKeys.add(key);
 
         if (pressedKeys.has('a') && pressedKeys.has('l')) {
-            // テキスト入力欄にフォーカス中は誤爆防止
             const tag = document.activeElement.tagName;
             if (tag !== 'INPUT' && tag !== 'TEXTAREA') {
                 e.preventDefault();
@@ -514,13 +521,12 @@
 
     // サンプルコードコピー
     document.getElementById('copySampleShmlBtn').onclick = () => {
-        const codeText = document.getElementById('sampleShmlCode').innerText;
-        navigator.clipboard.writeText(codeText).then(() => {
+        navigator.clipboard.writeText(SAMPLE_SHML_TEXT).then(() => {
             alert('サンプルの .shml コードをクリップボードにコピーしました！');
         });
     };
 
-    // --- 🔌 .shml 独自プラグイン読み込み処理（既存HTMLの下に追加＋スクリプト実行） ---
+    // --- 🔌 .shml 独自プラグイン読み込み処理 ---
     document.getElementById('shmlFileInput').onchange = (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -530,12 +536,10 @@
             const htmlContent = ev.target.result;
             const container = document.getElementById('shmlPluginContainer');
             
-            // 一時ラッパーでHTMLをパースして既存HTMLの末尾に追加
             const wrapper = document.createElement('div');
             wrapper.setAttribute('data-shml-plugin', file.name);
             wrapper.innerHTML = htmlContent;
 
-            // innerHTMLで挿入された<script>タグを実際に動作するscript要素に置換して実行
             const scripts = Array.from(wrapper.querySelectorAll('script'));
             scripts.forEach(oldScript => {
                 const newScript = document.createElement('script');
@@ -628,6 +632,7 @@
             img.src = ev.target.result;
         };
         reader.readAsDataURL(file);
+        e.target.value = '';
     };
 
     document.getElementById('addTextBtn').onclick = () => {
@@ -682,6 +687,12 @@
     function selectLayer(layer) {
         activeLayer = layer;
         renderLayerList();
+
+        const inspectorPanel = document.getElementById('inspectorPanel');
+        const textInspector = document.getElementById('textInspector');
+        const imageInspector = document.getElementById('imageInspector');
+        const shapeInspector = document.getElementById('shapeInspector');
+        const mosaicInspector = document.getElementById('mosaicInspector');
 
         if (!layer) {
             inspectorPanel.classList.add('hidden');
@@ -957,7 +968,7 @@
             ];
 
             ctx.beginPath();
-            if (r > 0 && Math.abs(topScale - 1) < 0.01 && Math.abs(spike) < 0.01) {
+            if (r > 0 && Math.abs(topScale - 1) < 0.01 && Math.abs(spike) < 0.01 && ctx.roundRect) {
                 ctx.roundRect(-hw, -hh, layer.w, layer.h, r);
             } else {
                 for (let i = 0; i < 4; i++) {
@@ -965,7 +976,6 @@
                     const p1 = pts[(i + 1) % 4];
                     const midX = (p0.x + p1.x) / 2;
                     const midY = (p0.y + p1.y) / 2;
-                    // 辺の中央をルビ(spike)で膨らませる/凹ませる
                     const nx = -(p1.y - p0.y);
                     const ny =  (p1.x - p0.x);
                     const len = Math.hypot(nx, ny) || 1;
@@ -980,7 +990,6 @@
         } else if (layer.shapeType === 'circle') {
             ctx.beginPath();
             if (Math.abs(spike) > 0.01) {
-                // ルビ変形による花びら・波型円変形
                 const steps = 64;
                 const lobes = layer.sides || 6;
                 for (let i = 0; i <= steps; i++) {
@@ -1021,7 +1030,6 @@
             ctx.quadraticCurveTo(hw, -boxH, hw, -boxH + rad);
             ctx.lineTo(hw, boxH - rad);
             ctx.quadraticCurveTo(hw, boxH, hw - rad, boxH);
-            // しっぽ部分
             ctx.lineTo(tailOffset + 18, boxH);
             ctx.lineTo(tailOffset + (layer.spike || 0) * 0.5, boxH + tailH);
             ctx.lineTo(tailOffset - 18, boxH);
@@ -1076,7 +1084,6 @@
             ctx.rotate(((layer.rotation || 0) * Math.PI) / 180);
 
             if (layer.type === 'shape') {
-                // ルビ斜め歪み (Skew X) の適用
                 const skewRad = ((layer.skewX || 0) * Math.PI) / 180;
                 if (skewRad !== 0) {
                     ctx.transform(1, 0, Math.tan(skewRad), 1, 0, 0);

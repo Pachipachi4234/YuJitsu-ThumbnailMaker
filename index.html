@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>YuJitsu ThumbnailMaker Pro v2.3.1</title>
+    <title>YuJitsu ThumbnailMaker Pro v2.4</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- 日本語フォント一式 -->
     <link href="https://fonts.googleapis.com/css2?family=Corporate+Logo+Rounded:wght@700&family=Dela+Gothic+One&family=DotGothic16&family=Kaisei+Tokumin:wght@700&family=Kiwi+Maru:wght@500&family=M+PLUS+Rounded+1c:wght@800&family=Mochiy+Pop+P+One&family=Potta+One&family=Reggae+One&family=RocknRoll+One&family=Yusei+Magic&family=Zen+Maru+Gothic:wght@900&display=swap" rel="stylesheet">
@@ -23,8 +23,8 @@
     <!-- ヘッダー -->
     <header class="flex justify-between items-center border-b border-[#30363d] pb-2 flex-none">
         <div>
-            <h1 class="text-lg font-bold text-[#58a6ff]">YuJitsu ThumbnailMaker <span class="text-xs text-purple-400 font-normal">Pro v2.3.1</span></h1>
-            <p class="text-[11px] text-gray-400">図形ルビ変形(角丸/台形/斜め/多角形)・独自プラグイン(.shml)・A+L開発者隠しページ対応</p>
+            <h1 class="text-lg font-bold text-[#58a6ff]">YuJitsu ThumbnailMaker <span class="text-xs text-purple-400 font-normal">Pro v2.4</span></h1>
+            <p class="text-[11px] text-gray-400">図形ルビ直接ドラッグ変形(●頂点/◆辺カーブ)・独自プラグイン(.shml)・A+L開発者隠しページ対応</p>
         </div>
         <div class="flex items-center gap-2">
             <label class="bg-emerald-900/60 hover:bg-emerald-800 text-emerald-200 border border-emerald-600 text-xs px-3 py-2 rounded font-bold transition cursor-pointer">
@@ -250,17 +250,16 @@
                     </div>
                 </div>
 
-                <!-- C. 図形専用プロパティ（ルビ変形機能付き） -->
+                <!-- C. 図形専用プロパティ（キャンバス直接ルビ頂点＆辺カーブ変形） -->
                 <div id="shapeInspector" class="space-y-2 hidden">
                     <div class="grid grid-cols-2 gap-2">
                         <div>
-                            <span class="text-[10px] text-gray-400">図形タイプ</span>
+                            <span class="text-[10px] text-gray-400">基本ベース形状</span>
                             <select id="shapeType" class="input-ui">
-                                <option value="rect">長方形 / ルビ変形四角</option>
-                                <option value="circle">円形 / 楕円</option>
-                                <option value="polygon">多角形 / 星型 (ルビ角数)</option>
-                                <option value="speech">吹き出し (ルビしっぽ変形)</option>
-                                <option value="line">直線</option>
+                                <option value="rect">四角ベース (4頂点+4辺ルビ)</option>
+                                <option value="circle">円・楕円ベース (8点ルビ)</option>
+                                <option value="triangle">三角ベース (3頂点+3辺ルビ)</option>
+                                <option value="star">星・集中プレート (10点ルビ)</option>
                             </select>
                         </div>
                         <div>
@@ -270,45 +269,24 @@
                     </div>
 
                     <div class="grid grid-cols-2 gap-2">
-                        <div><span class="text-[10px] text-gray-400">横幅 (W)</span><input type="number" id="shapeW" value="300" min="10" max="1280" class="input-ui"></div>
-                        <div><span class="text-[10px] text-gray-400">縦幅 (H)</span><input type="number" id="shapeH" value="150" min="10" max="720" class="input-ui"></div>
+                        <div><span class="text-[10px] text-gray-400">基準横幅 (W)</span><input type="number" id="shapeW" value="360" min="20" max="1280" class="input-ui"></div>
+                        <div><span class="text-[10px] text-gray-400">基準縦幅 (H)</span><input type="number" id="shapeH" value="180" min="20" max="720" class="input-ui"></div>
                     </div>
 
-                    <!-- ✨ 図形ルビ変形セクション -->
-                    <div class="bg-[#161b22] p-2 rounded border border-emerald-500/40 space-y-1.5">
+                    <!-- ✨ ルビハンドル操作ガイド＆リセット -->
+                    <div class="bg-[#161b22] p-2.5 rounded border border-emerald-500/50 space-y-1.5">
                         <div class="flex justify-between items-center">
-                            <span class="text-[10px] font-bold text-emerald-400">💎 図形ルビ変形 (自由形状調整)</span>
-                            <button id="resetRubyShapeBtn" class="text-[9px] bg-gray-800 hover:bg-gray-700 px-1.5 py-0.5 rounded border border-gray-600 text-gray-300">リセット</button>
+                            <span class="text-[10px] font-bold text-emerald-400">💎 キャンバス直接ルビ変形モード ON</span>
+                            <button id="resetRubyShapeBtn" class="text-[10px] bg-emerald-900/60 hover:bg-emerald-800 px-2 py-0.5 rounded border border-emerald-500 text-emerald-200 font-bold">ルビ全リセット</button>
                         </div>
-                        <div class="grid grid-cols-2 gap-2">
-                            <div>
-                                <span class="text-[10px] text-gray-400">角丸ルビ (Radius)</span>
-                                <input type="range" id="shapeRadius" min="0" max="150" value="0" class="w-full">
-                            </div>
-                            <div>
-                                <span class="text-[10px] text-gray-400">斜め歪み (Skew X)</span>
-                                <input type="range" id="shapeSkewX" min="-60" max="60" value="0" class="w-full">
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-2">
-                            <div>
-                                <span class="text-[10px] text-gray-400">台形・上辺幅比率 (%)</span>
-                                <input type="range" id="shapeTopRatio" min="10" max="180" value="100" class="w-full">
-                            </div>
-                            <div>
-                                <span class="text-[10px] text-gray-400">頂点膨らみ / ギザギザ</span>
-                                <input type="range" id="shapeSpike" min="-50" max="80" value="0" class="w-full">
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-2">
-                            <div>
-                                <span class="text-[10px] text-gray-400">多角形・角数 (3〜12)</span>
-                                <input type="range" id="shapeSides" min="3" max="12" value="5" class="w-full">
-                            </div>
-                            <div>
-                                <span class="text-[10px] text-gray-400">吹き出し尾X位置 (%)</span>
-                                <input type="range" id="shapeTailX" min="-45" max="45" value="0" class="w-full">
-                            </div>
+                        <ul class="text-[10px] text-gray-300 space-y-0.5 list-disc list-inside">
+                            <li><span class="text-emerald-400 font-bold">● 緑ハンドル</span>：つまんで角の頂点を自由に移動</li>
+                            <li><span class="text-yellow-300 font-bold">◆ 黄ハンドル</span>：つまんで辺をグニッと曲線変形</li>
+                            <li><span class="text-blue-300 font-bold">ダブルクリック</span>：つまんだ点だけ初期位置に戻す</li>
+                        </ul>
+                        <div class="flex items-center gap-2 pt-1">
+                            <span class="text-[10px] text-gray-400">角の丸み</span>
+                            <input type="range" id="shapeCornerRound" min="0" max="80" value="0" class="w-full">
                         </div>
                     </div>
 
@@ -348,7 +326,7 @@
 
         <!-- 右：メインキャンバスプレビュー -->
         <div class="flex-1 panel relative flex flex-col items-center justify-center p-4 bg-[#010409] overflow-hidden">
-            <div class="text-xs text-gray-400 absolute top-2 left-2 z-10">🖥️ Canvas (1280 x 720) — マウスドラッグで移動</div>
+            <div class="text-xs text-gray-400 absolute top-2 left-2 z-10">🖥️ Canvas (1280 x 720) — 本体ドラッグで移動 / 図形の●◆ルビハンドルで自由変形</div>
             <div class="relative max-w-full max-h-full flex items-center justify-center">
                 <canvas id="mainCanvas" width="1280" height="720" class="max-w-full max-h-[78vh] border border-gray-700 shadow-2xl cursor-grab active:cursor-grabbing object-contain bg-black"></canvas>
             </div>
@@ -414,7 +392,6 @@
     </div>
 
 <script>
-    // サンプルコードをJS側から安全にテキストセット（HTMLパース崩れ完全防止）
     const SAMPLE_SHML_TEXT = [
         '<!-- ゆ実サムネ用 爆速プリセット追加プラグイン (.shml) -->',
         '<div id="yukkuri-preset-plugin" style="position:fixed; bottom:16px; right:16px; background:#161b22; border:2px solid #10b981; padding:10px; border-radius:8px; z-index:40;">',
@@ -446,7 +423,6 @@
 
     document.getElementById('sampleShmlPreview').textContent = SAMPLE_SHML_TEXT;
 
-    // ベースHTMLの初期スナップショットを保持（ダウンロード用）
     const INITIAL_BASE_HTML = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
 
     const canvas = document.getElementById('mainCanvas');
@@ -477,6 +453,52 @@
         warm: 'sepia(30%) saturate(140%)'
     };
 
+    // --- 💎 図形ルビ頂点・辺カーブ生成ヘルパー ---
+    function createDefaultRubyNodes(shapeType, w, h) {
+        const hw = w / 2;
+        const hh = h / 2;
+        if (shapeType === 'triangle') {
+            return [
+                { vx: 0, vy: -hh, cx: 0, cy: 0 },
+                { vx: hw, vy: hh, cx: 0, cy: 0 },
+                { vx: -hw, vy: hh, cx: 0, cy: 0 }
+            ];
+        } else if (shapeType === 'circle') {
+            const pts = [];
+            const n = 8;
+            const k = 0.28; // 円に近づけるためのベジェ膨らみ係数
+            for (let i = 0; i < n; i++) {
+                const a1 = (i / n) * Math.PI * 2 - Math.PI / 2;
+                const a2 = ((i + 1) / n) * Math.PI * 2 - Math.PI / 2;
+                const x1 = Math.cos(a1) * hw, y1 = Math.sin(a1) * hh;
+                const x2 = Math.cos(a2) * hw, y2 = Math.sin(a2) * hh;
+                const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+                const amid = (a1 + a2) / 2;
+                const targetX = Math.cos(amid) * hw * (1 + k);
+                const targetY = Math.sin(amid) * hh * (1 + k);
+                pts.push({ vx: x1, vy: y1, cx: targetX - mx, cy: targetY - my });
+            }
+            return pts;
+        } else if (shapeType === 'star') {
+            const pts = [];
+            const n = 10;
+            for (let i = 0; i < n; i++) {
+                const a = (i / n) * Math.PI * 2 - Math.PI / 2;
+                const rScale = (i % 2 === 0) ? 1.0 : 0.48;
+                pts.push({ vx: Math.cos(a) * hw * rScale, vy: Math.sin(a) * hh * rScale, cx: 0, cy: 0 });
+            }
+            return pts;
+        } else {
+            // rect (デフォルト4頂点＋4辺制御)
+            return [
+                { vx: -hw, vy: -hh, cx: 0, cy: 0 },
+                { vx:  hw, vy: -hh, cx: 0, cy: 0 },
+                { vx:  hw, vy:  hh, cx: 0, cy: 0 },
+                { vx: -hw, vy:  hh, cx: 0, cy: 0 }
+            ];
+        }
+    }
+
     // --- 🔒 A + L キー同時押し 隠し開発者ページ制御 ---
     const pressedKeys = new Set();
     const secretDevModal = document.getElementById('secretDevModal');
@@ -497,19 +519,13 @@
         }
     });
 
-    window.addEventListener('keyup', (e) => {
-        pressedKeys.delete(e.key.toLowerCase());
-    });
-
-    window.addEventListener('blur', () => {
-        pressedKeys.clear();
-    });
+    window.addEventListener('keyup', (e) => pressedKeys.delete(e.key.toLowerCase()));
+    window.addEventListener('blur', () => pressedKeys.clear());
 
     document.getElementById('closeSecretModalBtn').onclick = () => {
         secretDevModal.classList.add('hidden');
     };
 
-    // ベースHTMLダウンロードボタン
     document.getElementById('downloadBaseHtmlBtn').onclick = () => {
         const blob = new Blob([INITIAL_BASE_HTML], { type: 'text/html;charset=utf-8' });
         const a = document.createElement('a');
@@ -519,7 +535,6 @@
         URL.revokeObjectURL(a.href);
     };
 
-    // サンプルコードコピー
     document.getElementById('copySampleShmlBtn').onclick = () => {
         navigator.clipboard.writeText(SAMPLE_SHML_TEXT).then(() => {
             alert('サンプルの .shml コードをクリップボードにコピーしました！');
@@ -648,10 +663,12 @@
     };
 
     document.getElementById('addShapeBtn').onclick = () => {
+        const w = 360, h = 180;
         const layer = {
             id: Date.now(), type: 'shape', name: `図形 (${layers.filter(l=>l.type==='shape').length+1})`,
-            shapeType: 'rect', x: 640, y: 450, w: 400, h: 200, rotation: 0,
-            radius: 0, skewX: 0, topRatio: 100, spike: 0, sides: 5, tailX: 0,
+            shapeType: 'rect', x: 640, y: 450, w: w, h: h, rotation: 0,
+            cornerRound: 0,
+            rubyNodes: createDefaultRubyNodes('rect', w, h),
             strokeColor: '#ffffff', strokeWidth: 4, colors: ['#00ffff', '#0055ff']
         };
         layers.push(layer); selectLayer(layer);
@@ -735,17 +752,12 @@
             document.getElementById('imgBlur').value = layer.blur;
             document.getElementById('imgBrightness').value = layer.brightness;
         } else if (layer.type === 'shape') {
-            document.getElementById('inspectorTitle').innerText = '🔷 図形プロパティ';
+            document.getElementById('inspectorTitle').innerText = '🔷 図形プロパティ (ルビ変形)';
             shapeInspector.classList.remove('hidden');
             document.getElementById('shapeType').value = layer.shapeType;
             document.getElementById('shapeW').value = layer.w;
             document.getElementById('shapeH').value = layer.h;
-            document.getElementById('shapeRadius').value = layer.radius ?? 0;
-            document.getElementById('shapeSkewX').value = layer.skewX ?? 0;
-            document.getElementById('shapeTopRatio').value = layer.topRatio ?? 100;
-            document.getElementById('shapeSpike').value = layer.spike ?? 0;
-            document.getElementById('shapeSides').value = layer.sides ?? 5;
-            document.getElementById('shapeTailX').value = layer.tailX ?? 0;
+            document.getElementById('shapeCornerRound').value = layer.cornerRound || 0;
             document.getElementById('shapeStrokeColor').value = layer.strokeColor;
             document.getElementById('shapeStrokeWidth').value = layer.strokeWidth;
             renderShapeColorsPickers();
@@ -825,34 +837,42 @@
         document.getElementById(id).oninput = updateImageLayer;
     });
 
-    function updateShapeLayer() {
+    document.getElementById('shapeType').onchange = (e) => {
         if (!activeLayer || activeLayer.type !== 'shape') return;
-        activeLayer.shapeType = document.getElementById('shapeType').value;
-        activeLayer.w = parseInt(document.getElementById('shapeW').value);
-        activeLayer.h = parseInt(document.getElementById('shapeH').value);
-        activeLayer.radius = parseInt(document.getElementById('shapeRadius').value);
-        activeLayer.skewX = parseInt(document.getElementById('shapeSkewX').value);
-        activeLayer.topRatio = parseInt(document.getElementById('shapeTopRatio').value);
-        activeLayer.spike = parseInt(document.getElementById('shapeSpike').value);
-        activeLayer.sides = parseInt(document.getElementById('shapeSides').value);
-        activeLayer.tailX = parseInt(document.getElementById('shapeTailX').value);
+        activeLayer.shapeType = e.target.value;
+        activeLayer.rubyNodes = createDefaultRubyNodes(activeLayer.shapeType, activeLayer.w, activeLayer.h);
+        render();
+    };
+
+    function updateShapeSizeAndStyle() {
+        if (!activeLayer || activeLayer.type !== 'shape') return;
+        const newW = parseInt(document.getElementById('shapeW').value) || 100;
+        const newH = parseInt(document.getElementById('shapeH').value) || 100;
+        const scaleX = newW / (activeLayer.w || 1);
+        const scaleY = newH / (activeLayer.h || 1);
+        activeLayer.rubyNodes.forEach(node => {
+            node.vx *= scaleX;
+            node.vy *= scaleY;
+            node.cx *= scaleX;
+            node.cy *= scaleY;
+        });
+        activeLayer.w = newW;
+        activeLayer.h = newH;
+        activeLayer.cornerRound = parseInt(document.getElementById('shapeCornerRound').value) || 0;
         activeLayer.strokeColor = document.getElementById('shapeStrokeColor').value;
-        activeLayer.strokeWidth = parseInt(document.getElementById('shapeStrokeWidth').value);
+        activeLayer.strokeWidth = parseInt(document.getElementById('shapeStrokeWidth').value) || 0;
         render();
     }
-    ['shapeType', 'shapeW', 'shapeH', 'shapeRadius', 'shapeSkewX', 'shapeTopRatio', 'shapeSpike', 'shapeSides', 'shapeTailX', 'shapeStrokeColor', 'shapeStrokeWidth'].forEach(id => {
-        document.getElementById(id).oninput = updateShapeLayer;
+    ['shapeW', 'shapeH', 'shapeCornerRound', 'shapeStrokeColor', 'shapeStrokeWidth'].forEach(id => {
+        document.getElementById(id).oninput = updateShapeSizeAndStyle;
     });
 
     document.getElementById('resetRubyShapeBtn').onclick = () => {
         if (!activeLayer || activeLayer.type !== 'shape') return;
-        activeLayer.radius = 0;
-        activeLayer.skewX = 0;
-        activeLayer.topRatio = 100;
-        activeLayer.spike = 0;
-        activeLayer.sides = 5;
-        activeLayer.tailX = 0;
-        selectLayer(activeLayer);
+        activeLayer.rubyNodes = createDefaultRubyNodes(activeLayer.shapeType, activeLayer.w, activeLayer.h);
+        activeLayer.cornerRound = 0;
+        document.getElementById('shapeCornerRound').value = 0;
+        render();
     };
 
     function renderShapeColorsPickers() {
@@ -889,7 +909,9 @@
         selectLayer(null);
     };
 
-    let isDragging = false;
+    // --- 🖱️ キャンバス上でのドラッグ移動 ＆ ルビ頂点・辺ハンドル操作 ---
+    let dragMode = null; // 'layer' | 'vertex' | 'edge'
+    let activeNodeIndex = -1;
     let dragOffset = { x: 0, y: 0 };
 
     function getCanvasCoords(e) {
@@ -900,14 +922,60 @@
         };
     }
 
+    // ワールド座標 -> レイヤーローカル座標変換（回転対応）
+    function toLocalCoords(layer, wx, wy) {
+        const dx = wx - layer.x;
+        const dy = wy - layer.y;
+        const rad = -((layer.rotation || 0) * Math.PI) / 180;
+        return {
+            lx: dx * Math.cos(rad) - dy * Math.sin(rad),
+            ly: dx * Math.sin(rad) + dy * Math.cos(rad)
+        };
+    }
+
+    // 選択中図形のルビハンドル座標を取得
+    function getRubyHandles(layer) {
+        if (!layer || layer.type !== 'shape' || !layer.rubyNodes) return [];
+        const handles = [];
+        const nodes = layer.rubyNodes;
+        const n = nodes.length;
+        for (let i = 0; i < n; i++) {
+            const p0 = nodes[i];
+            const p1 = nodes[(i + 1) % n];
+            // 頂点ハンドル (vertex)
+            handles.push({ kind: 'vertex', index: i, lx: p0.vx, ly: p0.vy });
+            // 辺の中間ベジェ曲線ハンドル (edge)
+            const midX = (p0.vx + p1.vx) / 2 + p0.cx * 0.5;
+            const midY = (p0.vy + p1.vy) / 2 + p0.cy * 0.5;
+            handles.push({ kind: 'edge', index: i, lx: midX, ly: midY });
+        }
+        return handles;
+    }
+
     canvas.onmousedown = (e) => {
         const { x, y } = getCanvasCoords(e);
+
+        // 1. まず選択中の図形の「ルビハンドル（●頂点 / ◆辺）」のヒット判定を最優先！
+        if (activeLayer && activeLayer.type === 'shape') {
+            const { lx, ly } = toLocalCoords(activeLayer, x, y);
+            const handles = getRubyHandles(activeLayer);
+            for (const h of handles) {
+                if (Math.hypot(lx - h.lx, ly - h.ly) <= 18) {
+                    dragMode = h.kind;
+                    activeNodeIndex = h.index;
+                    return;
+                }
+            }
+        }
+
+        // 2. レイヤー本体の選択・移動
         for (let i = layers.length - 1; i >= 0; i--) {
             const layer = layers[i];
+            const hitRadius = layer.type === 'shape' ? Math.max(layer.w, layer.h) * 0.55 : 150;
             const dist = Math.hypot(x - layer.x, y - layer.y);
-            if (dist < 150) {
+            if (dist < hitRadius) {
                 selectLayer(layer);
-                isDragging = true;
+                dragMode = 'layer';
                 dragOffset = { x: x - layer.x, y: y - layer.y };
                 return;
             }
@@ -916,15 +984,68 @@
     };
 
     canvas.onmousemove = (e) => {
-        if (!isDragging || !activeLayer) return;
         const { x, y } = getCanvasCoords(e);
-        activeLayer.x = x - dragOffset.x;
-        activeLayer.y = y - dragOffset.y;
-        render();
+
+        if (dragMode && activeLayer) {
+            if (dragMode === 'layer') {
+                activeLayer.x = x - dragOffset.x;
+                activeLayer.y = y - dragOffset.y;
+                render();
+            } else if (dragMode === 'vertex' && activeLayer.type === 'shape') {
+                const { lx, ly } = toLocalCoords(activeLayer, x, y);
+                activeLayer.rubyNodes[activeNodeIndex].vx = lx;
+                activeLayer.rubyNodes[activeNodeIndex].vy = ly;
+                render();
+            } else if (dragMode === 'edge' && activeLayer.type === 'shape') {
+                const { lx, ly } = toLocalCoords(activeLayer, x, y);
+                const nodes = activeLayer.rubyNodes;
+                const p0 = nodes[activeNodeIndex];
+                const p1 = nodes[(activeNodeIndex + 1) % nodes.length];
+                const baseMidX = (p0.vx + p1.vx) / 2;
+                const baseMidY = (p0.vy + p1.vy) / 2;
+                p0.cx = (lx - baseMidX) * 2;
+                p0.cy = (ly - baseMidY) * 2;
+                render();
+            }
+            return;
+        }
+
+        // ホバー時のカーソル変更（ルビハンドルの上ならcrosshair）
+        if (activeLayer && activeLayer.type === 'shape') {
+            const { lx, ly } = toLocalCoords(activeLayer, x, y);
+            const handles = getRubyHandles(activeLayer);
+            const overHandle = handles.some(h => Math.hypot(lx - h.lx, ly - h.ly) <= 18);
+            canvas.style.cursor = overHandle ? 'crosshair' : 'grab';
+        } else {
+            canvas.style.cursor = 'grab';
+        }
     };
 
-    canvas.onmouseup = () => isDragging = false;
-    canvas.onmouseleave = () => isDragging = false;
+    // ダブルクリックでルビ頂点・辺を個別リセット
+    canvas.ondblclick = (e) => {
+        if (!activeLayer || activeLayer.type !== 'shape') return;
+        const { x, y } = getCanvasCoords(e);
+        const { lx, ly } = toLocalCoords(activeLayer, x, y);
+        const handles = getRubyHandles(activeLayer);
+        const defaults = createDefaultRubyNodes(activeLayer.shapeType, activeLayer.w, activeLayer.h);
+
+        for (const h of handles) {
+            if (Math.hypot(lx - h.lx, ly - h.ly) <= 20) {
+                if (h.kind === 'vertex' && defaults[h.index]) {
+                    activeLayer.rubyNodes[h.index].vx = defaults[h.index].vx;
+                    activeLayer.rubyNodes[h.index].vy = defaults[h.index].vy;
+                } else if (h.kind === 'edge') {
+                    activeLayer.rubyNodes[h.index].cx = defaults[h.index] ? defaults[h.index].cx : 0;
+                    activeLayer.rubyNodes[h.index].cy = defaults[h.index] ? defaults[h.index].cy : 0;
+                }
+                render();
+                break;
+            }
+        }
+    };
+
+    canvas.onmouseup = () => { dragMode = null; activeNodeIndex = -1; };
+    canvas.onmouseleave = () => { dragMode = null; activeNodeIndex = -1; };
 
     // --- 本物レインボーエフェクトを描画するヘルパー関数 ---
     function drawRainbowMask(drawAction, width, height) {
@@ -949,99 +1070,49 @@
         return rainCanvas;
     }
 
-    // --- 💎 図形ルビ変形描画ヘルパー ---
-    function drawRubyShapePath(ctx, layer) {
-        const hw = layer.w / 2;
-        const hh = layer.h / 2;
-        const r = Math.min(layer.radius || 0, hw, hh);
-        const topScale = (layer.topRatio ?? 100) / 100;
-        const spike = (layer.spike || 0) / 100;
+    // --- 💎 ルビ頂点・ベジェパス描画ヘルパー ---
+    function traceRubyPath(ctx, layer) {
+        const nodes = layer.rubyNodes;
+        if (!nodes || nodes.length === 0) return;
+        const n = nodes.length;
+        const round = layer.cornerRound || 0;
 
-        if (layer.shapeType === 'rect') {
-            const topW = hw * topScale;
-            const botW = hw;
-            const pts = [
-                { x: -topW, y: -hh },
-                { x:  topW, y: -hh },
-                { x:  botW, y:  hh },
-                { x: -botW, y:  hh }
-            ];
+        ctx.beginPath();
+        if (round > 0) {
+            // 角丸ルビ補間モード
+            for (let i = 0; i < n; i++) {
+                const prev = nodes[(i - 1 + n) % n];
+                const curr = nodes[i];
+                const next = nodes[(i + 1) % n];
 
-            ctx.beginPath();
-            if (r > 0 && Math.abs(topScale - 1) < 0.01 && Math.abs(spike) < 0.01 && ctx.roundRect) {
-                ctx.roundRect(-hw, -hh, layer.w, layer.h, r);
-            } else {
-                for (let i = 0; i < 4; i++) {
-                    const p0 = pts[i];
-                    const p1 = pts[(i + 1) % 4];
-                    const midX = (p0.x + p1.x) / 2;
-                    const midY = (p0.y + p1.y) / 2;
-                    const nx = -(p1.y - p0.y);
-                    const ny =  (p1.x - p0.x);
-                    const len = Math.hypot(nx, ny) || 1;
-                    const ctrlX = midX + (nx / len) * (Math.min(hw, hh) * spike);
-                    const ctrlY = midY + (ny / len) * (Math.min(hw, hh) * spike);
+                const v1x = prev.vx - curr.vx, v1y = prev.vy - curr.vy;
+                const v2x = next.vx - curr.vx, v2y = next.vy - curr.vy;
+                const len1 = Math.hypot(v1x, v1y) || 1;
+                const len2 = Math.hypot(v2x, v2y) || 1;
+                const r1 = Math.min(round, len1 * 0.45);
+                const r2 = Math.min(round, len2 * 0.45);
 
-                    if (i === 0) ctx.moveTo(p0.x, p0.y);
-                    ctx.quadraticCurveTo(ctrlX, ctrlY, p1.x, p1.y);
-                }
-                ctx.closePath();
-            }
-        } else if (layer.shapeType === 'circle') {
-            ctx.beginPath();
-            if (Math.abs(spike) > 0.01) {
-                const steps = 64;
-                const lobes = layer.sides || 6;
-                for (let i = 0; i <= steps; i++) {
-                    const theta = (i / steps) * Math.PI * 2;
-                    const mod = 1 + spike * 0.4 * Math.cos(theta * lobes);
-                    const px = Math.cos(theta) * hw * mod;
-                    const py = Math.sin(theta) * hh * mod;
-                    if (i === 0) ctx.moveTo(px, py);
-                    else ctx.lineTo(px, py);
-                }
-                ctx.closePath();
-            } else {
-                ctx.ellipse(0, 0, hw, hh, 0, 0, Math.PI * 2);
-            }
-        } else if (layer.shapeType === 'polygon') {
-            const sides = Math.max(3, layer.sides || 5);
-            const totalPts = sides * 2;
-            ctx.beginPath();
-            for (let i = 0; i < totalPts; i++) {
-                const angle = (i / totalPts) * Math.PI * 2 - Math.PI / 2;
-                const isOuter = i % 2 === 0;
-                const innerFactor = isOuter ? 1.0 : Math.max(0.2, 1.0 - spike);
-                const px = Math.cos(angle) * hw * innerFactor;
-                const py = Math.sin(angle) * hh * innerFactor;
-                if (i === 0) ctx.moveTo(px, py);
-                else ctx.lineTo(px, py);
+                const sx = curr.vx + (v1x / len1) * r1;
+                const sy = curr.vy + (v1y / len1) * r1;
+                const ex = curr.vx + (v2x / len2) * r2;
+                const ey = curr.vy + (v2y / len2) * r2;
+
+                if (i === 0) ctx.moveTo(sx, sy);
+                else ctx.lineTo(sx, sy);
+                ctx.quadraticCurveTo(curr.vx, curr.vy, ex, ey);
             }
             ctx.closePath();
-        } else if (layer.shapeType === 'speech') {
-            const tailOffset = ((layer.tailX || 0) / 100) * layer.w;
-            const tailH = Math.max(20, hh * 0.45);
-            const boxH = hh - tailH * 0.3;
-            const rad = Math.min(r || 16, hw * 0.5, boxH * 0.5);
-
-            ctx.beginPath();
-            ctx.moveTo(-hw + rad, -boxH);
-            ctx.lineTo(hw - rad, -boxH);
-            ctx.quadraticCurveTo(hw, -boxH, hw, -boxH + rad);
-            ctx.lineTo(hw, boxH - rad);
-            ctx.quadraticCurveTo(hw, boxH, hw - rad, boxH);
-            ctx.lineTo(tailOffset + 18, boxH);
-            ctx.lineTo(tailOffset + (layer.spike || 0) * 0.5, boxH + tailH);
-            ctx.lineTo(tailOffset - 18, boxH);
-            ctx.lineTo(-hw + rad, boxH);
-            ctx.quadraticCurveTo(-hw, boxH, -hw, boxH - rad);
-            ctx.lineTo(-hw, -boxH + rad);
-            ctx.quadraticCurveTo(-hw, -boxH, -hw + rad, -boxH);
+        } else {
+            // 自由頂点 ＋ 辺カーブ（ベジェ）モード
+            ctx.moveTo(nodes[0].vx, nodes[0].vy);
+            for (let i = 0; i < n; i++) {
+                const p0 = nodes[i];
+                const p1 = nodes[(i + 1) % n];
+                const ctrlX = (p0.vx + p1.vx) / 2 + p0.cx;
+                const ctrlY = (p0.vy + p1.vy) / 2 + p0.cy;
+                ctx.quadraticCurveTo(ctrlX, ctrlY, p1.vx, p1.vy);
+            }
             ctx.closePath();
-        } else if (layer.shapeType === 'line') {
-            ctx.beginPath();
-            ctx.moveTo(-hw, 0);
-            ctx.quadraticCurveTo(0, hh * spike, hw, 0);
         }
     }
 
@@ -1084,11 +1155,6 @@
             ctx.rotate(((layer.rotation || 0) * Math.PI) / 180);
 
             if (layer.type === 'shape') {
-                const skewRad = ((layer.skewX || 0) * Math.PI) / 180;
-                if (skewRad !== 0) {
-                    ctx.transform(1, 0, Math.tan(skewRad), 1, 0, 0);
-                }
-
                 ctx.lineWidth = layer.strokeWidth;
                 ctx.strokeStyle = layer.strokeColor;
                 ctx.lineJoin = 'round';
@@ -1101,12 +1167,44 @@
                 }
                 ctx.fillStyle = shapeFill;
 
-                drawRubyShapePath(ctx, layer);
-                if (layer.shapeType !== 'line') {
-                    ctx.fill();
-                }
+                traceRubyPath(ctx, layer);
+                ctx.fill();
                 if (layer.strokeWidth > 0) {
                     ctx.stroke();
+                }
+
+                // 選択中の図形には「ルビ変形ハンドル（●頂点・◆辺カーブ）」をオーバーレイ描画
+                if (activeLayer && activeLayer.id === layer.id) {
+                    ctx.setLineDash([4, 4]);
+                    ctx.strokeStyle = '#34d399';
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+
+                    const handles = getRubyHandles(layer);
+                    handles.forEach(h => {
+                        if (h.kind === 'vertex') {
+                            // 頂点ハンドル（緑●）
+                            ctx.beginPath();
+                            ctx.arc(h.lx, h.ly, 9, 0, Math.PI * 2);
+                            ctx.fillStyle = '#10b981';
+                            ctx.fill();
+                            ctx.lineWidth = 2.5;
+                            ctx.strokeStyle = '#ffffff';
+                            ctx.stroke();
+                        } else {
+                            // 辺カーブハンドル（黄色◆）
+                            ctx.save();
+                            ctx.translate(h.lx, h.ly);
+                            ctx.rotate(Math.PI / 4);
+                            ctx.fillStyle = '#facc15';
+                            ctx.fillRect(-6, -6, 12, 12);
+                            ctx.lineWidth = 2;
+                            ctx.strokeStyle = '#000000';
+                            ctx.strokeRect(-6, -6, 12, 12);
+                            ctx.restore();
+                        }
+                    });
                 }
             }
             else if (layer.type === 'image') {
@@ -1206,8 +1304,8 @@
                 ctx.save();
             }
 
-            // 選択枠表示
-            if (activeLayer && activeLayer.id === layer.id) {
+            // 図形以外のレイヤー選択枠表示（書き出し時は activeLayer=null なので消える）
+            if (activeLayer && activeLayer.id === layer.id && layer.type !== 'shape') {
                 ctx.strokeStyle = '#58a6ff';
                 ctx.lineWidth = 2;
                 ctx.setLineDash([6, 6]);

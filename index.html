@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>YuJitsu ThumbnailMaker Pro v2.7</title>
+    <title>YuJitsu ThumbnailMaker Pro v2.9</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- 日本語フォント一式 -->
     <link href="https://fonts.googleapis.com/css2?family=Corporate+Logo+Rounded:wght@700&family=Dela+Gothic+One&family=DotGothic16&family=Kaisei+Tokumin:wght@700&family=Kiwi+Maru:wght@500&family=M+PLUS+Rounded+1c:wght@800&family=Mochiy+Pop+P+One&family=Potta+One&family=Reggae+One&family=RocknRoll+One&family=Yusei+Magic&family=Zen+Maru+Gothic:wght@900&display=swap" rel="stylesheet">
@@ -23,8 +23,8 @@
     <!-- ヘッダー -->
     <header class="flex justify-between items-center border-b border-[#30363d] pb-2 flex-none">
         <div>
-            <h1 class="text-lg font-bold text-[#58a6ff]">YuJitsu ThumbnailMaker <span class="text-xs text-purple-400 font-normal">Pro v2.7</span></h1>
-            <p class="text-[11px] text-gray-400">全レイヤー＆背景の不透明度(0-100%)・図形＆モザイク●頂点ルビ・テキスト拡大ルビ・.shml対応</p>
+            <h1 class="text-lg font-bold text-[#58a6ff]">YuJitsu ThumbnailMaker <span class="text-xs text-purple-400 font-normal">Pro v2.9</span></h1>
+            <p class="text-[11px] text-gray-400">サブ画像●ルビ拡大縮小・フィルター不透明度・図形＆モザイク●頂点ルビ・テキスト拡大ルビ・.shml対応</p>
         </div>
         <div class="flex items-center gap-2">
             <label class="bg-emerald-900/60 hover:bg-emerald-800 text-emerald-200 border border-emerald-600 text-xs px-3 py-2 rounded font-bold transition cursor-pointer">
@@ -99,9 +99,18 @@
                     </div>
                 </div>
 
+                <!-- ✨ 背景フィルター不透明度（効き具合）スライダー -->
+                <div class="bg-[#010409] p-2 rounded border border-purple-500/40 space-y-1">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] font-bold text-purple-300">✨ フィルター不透明度 (効き具合)</span>
+                        <span id="bgFilterOpacityLabel" class="text-[10px] font-bold text-purple-400">100%</span>
+                    </div>
+                    <input type="range" id="bgFilterOpacity" min="0" max="100" value="100" class="w-full">
+                </div>
+
                 <div class="grid grid-cols-3 gap-2">
                     <div>
-                        <span class="text-[10px] text-gray-400">不透明度 <span id="bgOpacityLabel" class="text-emerald-400 font-bold">100%</span></span>
+                        <span class="text-[10px] text-gray-400">背景不透明度 <span id="bgOpacityLabel" class="text-emerald-400 font-bold">100%</span></span>
                         <input type="range" id="bgOpacity" min="0" max="100" value="100" class="w-full">
                     </div>
                     <div>
@@ -135,10 +144,10 @@
                     <button id="deleteLayerBtn" class="bg-red-900/60 hover:bg-red-800 text-red-200 text-[10px] px-2 py-0.5 rounded border border-red-700">削除</button>
                 </div>
 
-                <!-- 共通プロパティ：不透明度 ＆ 回転 -->
+                <!-- 共通プロパティ：レイヤー全体の不透明度 ＆ 回転 -->
                 <div class="bg-[#161b22] p-2 rounded border border-[#30363d] space-y-1">
                     <div class="flex justify-between items-center">
-                        <span class="text-[10px] font-bold text-emerald-300">👻 レイヤー不透明度 (透け具合)</span>
+                        <span class="text-[10px] font-bold text-emerald-300">👻 レイヤー全体の不透明度</span>
                         <span id="layerOpacityLabel" class="text-[10px] font-bold text-emerald-400">100%</span>
                     </div>
                     <input type="range" id="layerOpacityRange" min="0" max="100" value="100" class="w-full">
@@ -237,12 +246,15 @@
                     </div>
                 </div>
 
-                <!-- B. サブ画像専用プロパティ -->
+                <!-- B. サブ画像専用プロパティ（●ルビ拡大縮小付き） -->
                 <div id="imageInspector" class="space-y-2 hidden">
+                    <div class="bg-[#161b22] p-2 rounded border border-sky-500/40 text-[10px] text-sky-300">
+                        🔍 <strong>サブ画像●ルビ ON：</strong> キャンバス上の四隅にある<span class="font-bold text-white">水色●ハンドル</span>をドラッグして画像を直感的に拡大・縮小できます！
+                    </div>
                     <div class="grid grid-cols-2 gap-2">
                         <div>
-                            <span class="text-[10px] text-gray-400">スケール (サイズ)</span>
-                            <input type="range" id="imgScale" min="0.1" max="3.0" step="0.05" value="1.0" class="w-full">
+                            <span class="text-[10px] text-gray-400">スケール <span id="imgScaleLabel" class="text-sky-400 font-bold">1.00x</span></span>
+                            <input type="range" id="imgScale" min="0.1" max="3.0" step="0.01" value="1.0" class="w-full">
                         </div>
                         <div>
                             <span class="text-[10px] text-gray-400">フィルター</span>
@@ -256,6 +268,15 @@
                                 <option value="vivid">高彩度</option>
                             </select>
                         </div>
+                    </div>
+
+                    <!-- ✨ サブ画像のフィルター不透明度（効き具合）スライダー -->
+                    <div class="bg-[#161b22] p-2 rounded border border-purple-500/40 space-y-1">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] font-bold text-purple-300">✨ フィルター不透明度 (効き具合)</span>
+                            <span id="imgFilterOpacityLabel" class="text-[10px] font-bold text-purple-400">100%</span>
+                        </div>
+                        <input type="range" id="imgFilterOpacity" min="0" max="100" value="100" class="w-full">
                     </div>
 
                     <div class="grid grid-cols-2 gap-2">
@@ -355,7 +376,7 @@
 
         <!-- 右：メインキャンバスプレビュー -->
         <div class="flex-1 panel relative flex flex-col items-center justify-center p-4 bg-[#010409] overflow-hidden">
-            <div class="text-xs text-gray-400 absolute top-2 left-2 z-10">🖥️ Canvas (1280 x 720) — 本体ドラッグで移動 / 図形＆モザイクは緑●ルビで変形 / テキストは水色●ルビで拡大</div>
+            <div class="text-xs text-gray-400 absolute top-2 left-2 z-10">🖥️ Canvas (1280 x 720) — 本体ドラッグで移動 / 図形＆モザイクは緑●ルビで変形 / テキスト＆画像は水色●ルビで拡大</div>
             <div class="relative max-w-full max-h-full flex items-center justify-center">
                 <canvas id="mainCanvas" width="1280" height="720" class="max-w-full max-h-[78vh] border border-gray-700 shadow-2xl cursor-grab active:cursor-grabbing object-contain bg-black"></canvas>
             </div>
@@ -399,7 +420,7 @@
                             <code class="text-yellow-300">[javascript]</code> /
                             <code class="text-emerald-300">[python]</code> /
                             <code class="text-orange-300">[java]</code> /
-                            <code class="text-indigo-300">[php]</code>（ピアノ・ハ・ピアニッシモ！） /
+                            <code class="text-indigo-300">[php]</code> /
                             <code class="text-rose-300">[html]</code>
                         </div>
                     </div>
@@ -436,15 +457,14 @@
         '}',
         '_',
         '[php]',
-        '# ピアノ・ハ・ピアニッシモ（弱く脆く）ブロック！',
         '("21~30"):{',
-        '$ppp = "🎼 php(ピアノ・ハ・ピアニッシモ): 弱く脆く稼働中...";',
+        '$ppp = "🎼 php プラグイン稼働中...";',
         'echo $ppp;',
         '}',
         '_',
         '[html]',
         '("31~40"):{',
-        '<div style="position:fixed;bottom:14px;right:14px;background:#1e1b4b;border:1px solid #818cf8;color:#e0e7ff;padding:6px 12px;border-radius:8px;font-size:11px;z-index:40;">🎼 PHP(弱く脆く) プラグイン稼働中</div>',
+        '<div style="position:fixed;bottom:14px;right:14px;background:#1e1b4b;border:1px solid #818cf8;color:#e0e7ff;padding:6px 12px;border-radius:8px;font-size:11px;z-index:40;">🎼 PHP プラグイン稼働中</div>',
         '}',
         '_',
         '[javascript]',
@@ -473,6 +493,7 @@
 
     let bgImage = null;
     let bgOpacity = 100;
+    let bgFilterOpacity = 100;
     let bgBlur = 0;
     let bgBrightness = 100;
     let bgFilter = 'none';
@@ -659,7 +680,7 @@
         }
     }
 
-    // --- 🎼 PHP（ピアノ・ハ・ピアニッシモ：弱く脆く）ブロック実行 ---
+    // --- 🎼 PHP ブロック実行 ---
     function runShmlPhpBlock(code) {
         const vars = {};
         const lines = code.split('\n');
@@ -769,7 +790,6 @@
             const line = rawLine.trim();
             if (!line || line.startsWith('#')) continue;
 
-            // 1. 置き換え: ("元の文字",*"1~50")-("変える文字")
             const replaceMatch = line.match(/^\(\*?"([^"]+)"(?:,\*?"([^"]*)")?\)\s*-\s*\("([^"]+)"\)/);
             if (replaceMatch) {
                 const oldText = replaceMatch[1];
@@ -792,7 +812,6 @@
                 continue;
             }
 
-            // 2. 追加: (+"追加する行")-("表示名","{button}")-{button}:<id>
             const addMatch = line.match(/^\(\+"([^"]*)"\)\s*-\s*\("([^"]+)"(?:,"(\{button\}|\{file\})")?\)(?:-\{(\w+)\})?(?::<([^>]+)>)?/);
             if (addMatch) {
                 const labelText = addMatch[2];
@@ -834,7 +853,6 @@
                 continue;
             }
 
-            // 3. 消去: (="消す文字") または (="消す文字","1~10")
             const delMatch = line.match(/^\(="([^"]+)"(?:,"([^"]*)")?\)/);
             if (delMatch) {
                 const targetText = delMatch[1];
@@ -847,7 +865,6 @@
                 continue;
             }
 
-            // 4. 移動: (/"移動する文字")-("移動先行")
             const moveMatch = line.match(/^\(\/"([^"]+)"(?:,"([^"]*)")?\)\s*-\s*\("([^"]*)"\)/);
             if (moveMatch) {
                 const moveText = moveMatch[1];
@@ -917,6 +934,11 @@
         reader.readAsDataURL(file);
     };
 
+    document.getElementById('bgFilterOpacity').oninput = (e) => {
+        bgFilterOpacity = parseInt(e.target.value);
+        document.getElementById('bgFilterOpacityLabel').innerText = bgFilterOpacity + '%';
+        render();
+    };
     document.getElementById('bgOpacity').oninput = (e) => {
         bgOpacity = parseInt(e.target.value);
         document.getElementById('bgOpacityLabel').innerText = bgOpacity + '%';
@@ -954,7 +976,8 @@
             img.onload = () => {
                 const layer = {
                     id: Date.now(), type: 'image', name: `画像 (${layers.filter(l=>l.type==='image').length+1})`,
-                    img: img, x: 640, y: 360, scale: 1.0, rotation: 0, opacity: 100, filter: 'none',
+                    img: img, x: 640, y: 360, scale: 1.0, rotation: 0, opacity: 100,
+                    filter: 'none', filterOpacity: 100,
                     borderColor: '#ffffff', borderWidth: 0, blur: 0, brightness: 100
                 };
                 layers.push(layer); selectLayer(layer);
@@ -1065,10 +1088,14 @@
             updateToggleState();
             renderTextColorsPickers();
         } else if (layer.type === 'image') {
-            document.getElementById('inspectorTitle').innerText = '🖼️ 画像プロパティ';
+            document.getElementById('inspectorTitle').innerText = '🖼️ 画像プロパティ (●ルビ拡大付き)';
             imageInspector.classList.remove('hidden');
             document.getElementById('imgScale').value = layer.scale;
+            document.getElementById('imgScaleLabel').innerText = layer.scale.toFixed(2) + 'x';
             document.getElementById('imgFilter').value = layer.filter;
+            const fOp = layer.filterOpacity !== undefined ? layer.filterOpacity : 100;
+            document.getElementById('imgFilterOpacity').value = fOp;
+            document.getElementById('imgFilterOpacityLabel').innerText = fOp + '%';
             document.getElementById('imgBorderColor').value = layer.borderColor;
             document.getElementById('imgBorderWidth').value = layer.borderWidth;
             document.getElementById('imgBlur').value = layer.blur;
@@ -1108,7 +1135,6 @@
         });
     }
 
-    // 共通不透明度スライダーイベント
     document.getElementById('layerOpacityRange').oninput = (e) => {
         if (!activeLayer) return;
         activeLayer.opacity = parseInt(e.target.value);
@@ -1158,14 +1184,17 @@
     function updateImageLayer() {
         if (!activeLayer || activeLayer.type !== 'image') return;
         activeLayer.scale = parseFloat(document.getElementById('imgScale').value);
+        document.getElementById('imgScaleLabel').innerText = activeLayer.scale.toFixed(2) + 'x';
         activeLayer.filter = document.getElementById('imgFilter').value;
+        activeLayer.filterOpacity = parseInt(document.getElementById('imgFilterOpacity').value);
+        document.getElementById('imgFilterOpacityLabel').innerText = activeLayer.filterOpacity + '%';
         activeLayer.borderColor = document.getElementById('imgBorderColor').value;
         activeLayer.borderWidth = parseInt(document.getElementById('imgBorderWidth').value);
         activeLayer.blur = parseInt(document.getElementById('imgBlur').value);
         activeLayer.brightness = parseInt(document.getElementById('imgBrightness').value);
         render();
     }
-    ['imgScale', 'imgFilter', 'imgBorderColor', 'imgBorderWidth', 'imgBlur', 'imgBrightness'].forEach(id => {
+    ['imgScale', 'imgFilter', 'imgFilterOpacity', 'imgBorderColor', 'imgBorderWidth', 'imgBlur', 'imgBrightness'].forEach(id => {
         document.getElementById(id).oninput = updateImageLayer;
     });
 
@@ -1261,12 +1290,13 @@
         selectLayer(null);
     };
 
-    // --- 🖱️ キャンバス上でのドラッグ移動 ＆ ルビハンドル操作（●頂点＆テキスト拡大のみ） ---
-    let dragMode = null; // 'layer' | 'vertex' | 'textScale'
+    // --- 🖱️ キャンバス上でのドラッグ移動 ＆ ルビハンドル操作（●頂点・テキスト拡大・画像拡大） ---
+    let dragMode = null; // 'layer' | 'vertex' | 'textScale' | 'imageScale'
     let activeNodeIndex = -1;
     let dragOffset = { x: 0, y: 0 };
-    let initialTextScaleDist = 1;
+    let initialScaleDist = 1;
     let initialTextSize = 80;
+    let initialImgScale = 1.0;
 
     function getCanvasCoords(e) {
         const rect = canvas.getBoundingClientRect();
@@ -1320,6 +1350,16 @@
                 { kind: 'textScale', index: 3, lx: -hw, ly:  hh }
             ];
         }
+        if (layer.type === 'image' && layer.img) {
+            const hw = (layer.img.width * layer.scale) / 2;
+            const hh = (layer.img.height * layer.scale) / 2;
+            return [
+                { kind: 'imageScale', index: 0, lx: -hw, ly: -hh },
+                { kind: 'imageScale', index: 1, lx:  hw, ly: -hh },
+                { kind: 'imageScale', index: 2, lx:  hw, ly:  hh },
+                { kind: 'imageScale', index: 3, lx: -hw, ly:  hh }
+            ];
+        }
         return [];
     }
 
@@ -1334,8 +1374,11 @@
                     dragMode = h.kind;
                     activeNodeIndex = h.index;
                     if (h.kind === 'textScale') {
-                        initialTextScaleDist = Math.max(10, Math.hypot(lx, ly));
+                        initialScaleDist = Math.max(10, Math.hypot(lx, ly));
                         initialTextSize = activeLayer.size;
+                    } else if (h.kind === 'imageScale') {
+                        initialScaleDist = Math.max(10, Math.hypot(lx, ly));
+                        initialImgScale = activeLayer.scale;
                     }
                     return;
                 }
@@ -1344,7 +1387,12 @@
 
         for (let i = layers.length - 1; i >= 0; i--) {
             const layer = layers[i];
-            const hitRadius = (layer.type === 'shape' || layer.type === 'mosaic') ? Math.max(layer.w, layer.h) * 0.55 : 150;
+            let hitRadius = 150;
+            if (layer.type === 'shape' || layer.type === 'mosaic') {
+                hitRadius = Math.max(layer.w, layer.h) * 0.55;
+            } else if (layer.type === 'image' && layer.img) {
+                hitRadius = Math.max(layer.img.width * layer.scale, layer.img.height * layer.scale) * 0.55;
+            }
             const dist = Math.hypot(x - layer.x, y - layer.y);
             if (dist < hitRadius) {
                 selectLayer(layer);
@@ -1372,10 +1420,19 @@
             } else if (dragMode === 'textScale' && activeLayer.type === 'text') {
                 const { lx, ly } = toLocalCoords(activeLayer, x, y);
                 const curDist = Math.max(10, Math.hypot(lx, ly));
-                const ratio = curDist / initialTextScaleDist;
+                const ratio = curDist / initialScaleDist;
                 const newSize = Math.min(400, Math.max(12, Math.round(initialTextSize * ratio)));
                 activeLayer.size = newSize;
                 document.getElementById('textSize').value = newSize;
+                render();
+            } else if (dragMode === 'imageScale' && activeLayer.type === 'image') {
+                const { lx, ly } = toLocalCoords(activeLayer, x, y);
+                const curDist = Math.max(10, Math.hypot(lx, ly));
+                const ratio = curDist / initialScaleDist;
+                const newScale = Math.min(3.0, Math.max(0.1, Number((initialImgScale * ratio).toFixed(2))));
+                activeLayer.scale = newScale;
+                document.getElementById('imgScale').value = newScale;
+                document.getElementById('imgScaleLabel').innerText = newScale.toFixed(2) + 'x';
                 render();
             }
             return;
@@ -1434,6 +1491,41 @@
         return rainCanvas;
     }
 
+    // --- ✨ フィルター不透明度ブレンド描画ヘルパー（元画像 + フィルター加工済みを指定%で合成） ---
+    function drawImageWithFilterOpacity(targetCtx, imgSource, dx, dy, dw, dh, blurVal, brightVal, filterType, filterOpacityPct) {
+        const fAlpha = Math.max(0, Math.min(1, (filterOpacityPct !== undefined ? filterOpacityPct : 100) / 100));
+        const baseFilterStr = `blur(${blurVal}px) brightness(${brightVal}%)`;
+
+        if (filterType === 'none' || fAlpha <= 0) {
+            targetCtx.save();
+            targetCtx.filter = baseFilterStr;
+            targetCtx.drawImage(imgSource, dx, dy, dw, dh);
+            targetCtx.restore();
+            return;
+        }
+
+        if (fAlpha < 1.0) {
+            targetCtx.save();
+            targetCtx.filter = baseFilterStr;
+            targetCtx.drawImage(imgSource, dx, dy, dw, dh);
+            targetCtx.restore();
+        }
+
+        targetCtx.save();
+        targetCtx.globalAlpha = targetCtx.globalAlpha * fAlpha;
+        if (filterType === 'rainbow') {
+            targetCtx.filter = baseFilterStr;
+            const rain = drawRainbowMask((rCtx) => {
+                rCtx.drawImage(imgSource, 0, 0, dw, dh);
+            }, dw, dh);
+            targetCtx.drawImage(rain, dx, dy);
+        } else {
+            targetCtx.filter = `${baseFilterStr} ${filterMap[filterType] || ''}`;
+            targetCtx.drawImage(imgSource, dx, dy, dw, dh);
+        }
+        targetCtx.restore();
+    }
+
     // --- 💎 ●頂点ルビ多角形パス描画ヘルパー（図形・モザイク共通） ---
     function traceRubyPolygonPath(targetCtx, layer) {
         const nodes = layer.rubyNodes;
@@ -1490,17 +1582,19 @@
             ctx.globalAlpha = Math.max(0, Math.min(1, bgOpacity / 100));
             ctx.translate(canvas.width / 2, canvas.height / 2);
             ctx.rotate((bgRotation * Math.PI) / 180);
-            
-            if (bgFilter === 'rainbow') {
-                ctx.filter = `blur(${bgBlur}px) brightness(${bgBrightness}%)`;
-                const rain = drawRainbowMask((rCtx) => {
-                    rCtx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
-                }, canvas.width, canvas.height);
-                ctx.drawImage(rain, -canvas.width / 2, -canvas.height / 2);
-            } else {
-                ctx.filter = `blur(${bgBlur}px) brightness(${bgBrightness}%) ${filterMap[bgFilter] || ''}`;
-                ctx.drawImage(bgImage, -canvas.width / 2, -canvas.height / 2, canvas.width, canvas.height);
-            }
+
+            drawImageWithFilterOpacity(
+                ctx,
+                bgImage,
+                -canvas.width / 2,
+                -canvas.height / 2,
+                canvas.width,
+                canvas.height,
+                bgBlur,
+                bgBrightness,
+                bgFilter,
+                bgFilterOpacity
+            );
             ctx.restore();
         }
 
@@ -1530,7 +1624,6 @@
                     ctx.stroke();
                 }
 
-                // 選択枠・ルビハンドルは視認性のため不透明度100%で描画
                 if (activeLayer && activeLayer.id === layer.id) {
                     ctx.globalAlpha = 1.0;
                     ctx.setLineDash([4, 4]);
@@ -1560,23 +1653,37 @@
                     ctx.strokeRect(-w / 2, -h / 2, w, h);
                 }
 
-                if (layer.filter === 'rainbow') {
-                    ctx.filter = `blur(${layer.blur}px) brightness(${layer.brightness}%)`;
-                    const rain = drawRainbowMask((rCtx) => {
-                        rCtx.drawImage(layer.img, 0, 0, w, h);
-                    }, w, h);
-                    ctx.drawImage(rain, -w / 2, -h / 2);
-                } else {
-                    ctx.filter = `blur(${layer.blur}px) brightness(${layer.brightness}%) ${filterMap[layer.filter] || ''}`;
-                    ctx.drawImage(layer.img, -w / 2, -h / 2, w, h);
-                }
+                drawImageWithFilterOpacity(
+                    ctx,
+                    layer.img,
+                    -w / 2,
+                    -h / 2,
+                    w,
+                    h,
+                    layer.blur,
+                    layer.brightness,
+                    layer.filter,
+                    layer.filterOpacity
+                );
 
+                // サブ画像選択時：四隅に●ルビ拡大ハンドル（水色●）を描画
                 if (activeLayer && activeLayer.id === layer.id) {
                     ctx.globalAlpha = 1.0;
-                    ctx.strokeStyle = '#58a6ff';
+                    ctx.strokeStyle = '#38bdf8';
                     ctx.lineWidth = 2;
                     ctx.setLineDash([6, 6]);
                     ctx.strokeRect(-w / 2, -h / 2, w, h);
+                    ctx.setLineDash([]);
+
+                    getRubyHandles(layer).forEach(h => {
+                        ctx.beginPath();
+                        ctx.arc(h.lx, h.ly, 8, 0, Math.PI * 2);
+                        ctx.fillStyle = '#0ea5e9';
+                        ctx.fill();
+                        ctx.lineWidth = 2;
+                        ctx.strokeStyle = '#ffffff';
+                        ctx.stroke();
+                    });
                 }
             }
             else if (layer.type === 'text') {
@@ -1628,7 +1735,6 @@
                     }
                 });
 
-                // テキスト選択時：拡大専用ルビハンドル（水色●）を描画
                 if (activeLayer && activeLayer.id === layer.id) {
                     ctx.globalAlpha = 1.0;
                     const { hw, hh } = getTextBounds(layer);
@@ -1686,7 +1792,6 @@
                 ctx.translate(layer.x, layer.y);
                 ctx.rotate(((layer.rotation || 0) * Math.PI) / 180);
 
-                // モザイク選択時：緑●頂点ルビハンドルを描画
                 if (activeLayer && activeLayer.id === layer.id) {
                     ctx.globalAlpha = 1.0;
                     traceRubyPolygonPath(ctx, layer);

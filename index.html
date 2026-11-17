@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>YuJitsu ThumbnailMaker Pro v2.6</title>
+    <title>YuJitsu ThumbnailMaker Pro v2.7</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- 日本語フォント一式 -->
     <link href="https://fonts.googleapis.com/css2?family=Corporate+Logo+Rounded:wght@700&family=Dela+Gothic+One&family=DotGothic16&family=Kaisei+Tokumin:wght@700&family=Kiwi+Maru:wght@500&family=M+PLUS+Rounded+1c:wght@800&family=Mochiy+Pop+P+One&family=Potta+One&family=Reggae+One&family=RocknRoll+One&family=Yusei+Magic&family=Zen+Maru+Gothic:wght@900&display=swap" rel="stylesheet">
@@ -23,8 +23,8 @@
     <!-- ヘッダー -->
     <header class="flex justify-between items-center border-b border-[#30363d] pb-2 flex-none">
         <div>
-            <h1 class="text-lg font-bold text-[#58a6ff]">YuJitsu ThumbnailMaker <span class="text-xs text-purple-400 font-normal">Pro v2.6</span></h1>
-            <p class="text-[11px] text-gray-400">図形＆モザイク●頂点ルビ・テキスト拡大ルビ・.shml(~複数行/JS/Python/Java/PHP/HTML)対応</p>
+            <h1 class="text-lg font-bold text-[#58a6ff]">YuJitsu ThumbnailMaker <span class="text-xs text-purple-400 font-normal">Pro v2.7</span></h1>
+            <p class="text-[11px] text-gray-400">全レイヤー＆背景の不透明度(0-100%)・図形＆モザイク●頂点ルビ・テキスト拡大ルビ・.shml対応</p>
         </div>
         <div class="flex items-center gap-2">
             <label class="bg-emerald-900/60 hover:bg-emerald-800 text-emerald-200 border border-emerald-600 text-xs px-3 py-2 rounded font-bold transition cursor-pointer">
@@ -99,13 +99,17 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-2">
+                <div class="grid grid-cols-3 gap-2">
                     <div>
-                        <span class="text-[10px] text-gray-400">ぼかし @0-20@</span>
+                        <span class="text-[10px] text-gray-400">不透明度 <span id="bgOpacityLabel" class="text-emerald-400 font-bold">100%</span></span>
+                        <input type="range" id="bgOpacity" min="0" max="100" value="100" class="w-full">
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-gray-400">ぼかし 0-20</span>
                         <input type="range" id="bgBlur" min="0" max="20" value="0" class="w-full">
                     </div>
                     <div>
-                        <span class="text-[10px] text-gray-400">明るさ @20-150@</span>
+                        <span class="text-[10px] text-gray-400">明るさ 20-150</span>
                         <input type="range" id="bgBrightness" min="20" max="150" value="100" class="w-full">
                     </div>
                 </div>
@@ -131,7 +135,15 @@
                     <button id="deleteLayerBtn" class="bg-red-900/60 hover:bg-red-800 text-red-200 text-[10px] px-2 py-0.5 rounded border border-red-700">削除</button>
                 </div>
 
-                <!-- 共通プロパティ：回転・傾き -->
+                <!-- 共通プロパティ：不透明度 ＆ 回転 -->
+                <div class="bg-[#161b22] p-2 rounded border border-[#30363d] space-y-1">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] font-bold text-emerald-300">👻 レイヤー不透明度 (透け具合)</span>
+                        <span id="layerOpacityLabel" class="text-[10px] font-bold text-emerald-400">100%</span>
+                    </div>
+                    <input type="range" id="layerOpacityRange" min="0" max="100" value="100" class="w-full">
+                </div>
+
                 <div class="grid grid-cols-2 gap-2">
                     <div>
                         <span class="text-[10px] text-gray-400">回転 [傾き度合い]</span>
@@ -200,7 +212,7 @@
                             </select>
                         </div>
                         <div>
-                            <span class="text-[10px] text-gray-400">円形カーブ角度 @-180~180@</span>
+                            <span class="text-[10px] text-gray-400">円形カーブ角度 -180~180</span>
                             <input type="range" id="textCurve" min="-180" max="180" value="0" class="w-full">
                         </div>
                     </div>
@@ -251,8 +263,8 @@
                         <div><span class="text-[10px] text-gray-400">縁の太さ</span><input type="number" id="imgBorderWidth" value="0" min="0" max="30" class="input-ui"></div>
                     </div>
                     <div class="grid grid-cols-2 gap-2">
-                        <div><span class="text-[10px] text-gray-400">ぼかし @0-20@</span><input type="range" id="imgBlur" min="0" max="20" value="0" class="w-full"></div>
-                        <div><span class="text-[10px] text-gray-400">明るさ @20-150@</span><input type="range" id="imgBrightness" min="20" max="150" value="100" class="w-full"></div>
+                        <div><span class="text-[10px] text-gray-400">ぼかし 0-20</span><input type="range" id="imgBlur" min="0" max="20" value="0" class="w-full"></div>
+                        <div><span class="text-[10px] text-gray-400">明るさ 20-150</span><input type="range" id="imgBrightness" min="20" max="150" value="100" class="w-full"></div>
                     </div>
                 </div>
 
@@ -314,7 +326,7 @@
                             </select>
                         </div>
                         <div>
-                            <span class="text-[10px] text-gray-400">モザイク強度 @5-50@</span>
+                            <span class="text-[10px] text-gray-400">モザイク強度 5-50</span>
                             <input type="range" id="mosaicTileSize" min="5" max="50" value="15" class="w-full">
                         </div>
                     </div>
@@ -441,7 +453,7 @@
         '  const w = 260, h = 220;',
         '  const layer = {',
         '    id: Date.now(), type: "shape", name: "三角ルビ図形",',
-        '    shapeType: "triangle", x: 640, y: 360, w: w, h: h, rotation: 0,',
+        '    shapeType: "triangle", x: 640, y: 360, w: w, h: h, rotation: 0, opacity: 100,',
         '    cornerRound: 0, rubyNodes: createDefaultRubyNodes("triangle", w, h),',
         '    strokeColor: "#ffffff", strokeWidth: 5, colors: ["#ffdd00", "#ff5500"]',
         '  };',
@@ -460,6 +472,7 @@
     const leftControlPanel = document.getElementById('leftControlPanel');
 
     let bgImage = null;
+    let bgOpacity = 100;
     let bgBlur = 0;
     let bgBrightness = 100;
     let bgFilter = 'none';
@@ -692,7 +705,6 @@
 
     // --- 🔌 独自スクリプト言語 (.shml) パーサー＆実行エンジン（~ 複数行指定対応） ---
     function parseLineRangeSpec(specStr) {
-        // "1~5" のような ~ 複数行指定を { start, end } に変換
         if (!specStr) return null;
         const m = specStr.match(/^(\d+)\s*~\s*(\d+)$/);
         if (m) return { start: parseInt(m[1], 10), end: parseInt(m[2], 10) };
@@ -744,7 +756,6 @@
     function extractBlockCode(body) {
         const cleanLines = body.split('\n').filter(l => !l.trim().startsWith('#'));
         const joined = cleanLines.join('\n').trim();
-        // ("1~10"):{ ... } または ("追加する行"):{ ... } または :{ ... } 形式に対応
         const blockMatch = joined.match(/^(?:\("[^"]*"\))?:\s*\{([\s\S]*)\}$/);
         if (blockMatch) return blockMatch[1].trim();
         const colonOnlyMatch = joined.match(/^:\s*([\s\S]*)$/);
@@ -906,6 +917,11 @@
         reader.readAsDataURL(file);
     };
 
+    document.getElementById('bgOpacity').oninput = (e) => {
+        bgOpacity = parseInt(e.target.value);
+        document.getElementById('bgOpacityLabel').innerText = bgOpacity + '%';
+        render();
+    };
     document.getElementById('bgBlur').oninput = (e) => { bgBlur = e.target.value; render(); };
     document.getElementById('bgBrightness').oninput = (e) => { bgBrightness = e.target.value; render(); };
     document.getElementById('bgFilter').onchange = (e) => { bgFilter = e.target.value; render(); };
@@ -938,7 +954,7 @@
             img.onload = () => {
                 const layer = {
                     id: Date.now(), type: 'image', name: `画像 (${layers.filter(l=>l.type==='image').length+1})`,
-                    img: img, x: 640, y: 360, scale: 1.0, rotation: 0, filter: 'none',
+                    img: img, x: 640, y: 360, scale: 1.0, rotation: 0, opacity: 100, filter: 'none',
                     borderColor: '#ffffff', borderWidth: 0, blur: 0, brightness: 100
                 };
                 layers.push(layer); selectLayer(layer);
@@ -953,7 +969,7 @@
         const layer = {
             id: Date.now(), type: 'text', name: `文字 (${layers.filter(l=>l.type==='text').length+1})`,
             text: "神回！爆速サムネ", x: 640, y: 250, font: "'Corporate Logo Rounded', sans-serif",
-            size: 80, rotation: 0, align: 'center', curve: 0,
+            size: 80, rotation: 0, opacity: 100, align: 'center', curve: 0,
             isBold: true, isItalic: false, isUnderline: false, isStrike: false,
             colors: ['#ffee00', '#ff0055'], innerColor: '#000000', innerWidth: 10,
             outerColor: '#cc0000', outerWidth: 8, shadowColor: '#000000', shadowBlur: 15
@@ -965,7 +981,7 @@
         const w = 360, h = 180;
         const layer = {
             id: Date.now(), type: 'shape', name: `図形 (${layers.filter(l=>l.type==='shape').length+1})`,
-            shapeType: 'rect', x: 640, y: 450, w: w, h: h, rotation: 0,
+            shapeType: 'rect', x: 640, y: 450, w: w, h: h, rotation: 0, opacity: 100,
             cornerRound: 0,
             rubyNodes: createDefaultRubyNodes('rect', w, h),
             strokeColor: '#ffffff', strokeWidth: 4, colors: ['#00ffff', '#0055ff']
@@ -977,7 +993,7 @@
         const w = 300, h = 200;
         const layer = {
             id: Date.now(), type: 'mosaic', name: `モザイク (${layers.filter(l=>l.type==='mosaic').length+1})`,
-            shape: 'rect', x: 640, y: 360, w: w, h: h, rotation: 0, tileSize: 15,
+            shape: 'rect', x: 640, y: 360, w: w, h: h, rotation: 0, opacity: 100, tileSize: 15,
             cornerRound: 0,
             rubyNodes: createDefaultRubyNodes('rect', w, h)
         };
@@ -1024,6 +1040,10 @@
         imageInspector.classList.add('hidden');
         shapeInspector.classList.add('hidden');
         mosaicInspector.classList.add('hidden');
+
+        const curOpacity = layer.opacity !== undefined ? layer.opacity : 100;
+        document.getElementById('layerOpacityRange').value = curOpacity;
+        document.getElementById('layerOpacityLabel').innerText = curOpacity + '%';
 
         document.getElementById('layerRotation').value = layer.rotation || 0;
         document.getElementById('layerRotationRange').value = layer.rotation || 0;
@@ -1081,11 +1101,21 @@
         [...layers].reverse().forEach(layer => {
             const item = document.createElement('div');
             item.className = `layer-item ${activeLayer && activeLayer.id === layer.id ? 'active' : ''}`;
-            item.innerHTML = `<span>${layer.name}</span><span class="text-[10px] text-gray-500">${layer.type}</span>`;
+            const opVal = layer.opacity !== undefined ? layer.opacity : 100;
+            item.innerHTML = `<span>${layer.name}</span><span class="text-[10px] text-gray-500">${layer.type} (${opVal}%)</span>`;
             item.onclick = () => selectLayer(layer);
             layerList.appendChild(item);
         });
     }
+
+    // 共通不透明度スライダーイベント
+    document.getElementById('layerOpacityRange').oninput = (e) => {
+        if (!activeLayer) return;
+        activeLayer.opacity = parseInt(e.target.value);
+        document.getElementById('layerOpacityLabel').innerText = activeLayer.opacity + '%';
+        renderLayerList();
+        render();
+    };
 
     document.getElementById('layerRotation').oninput = (e) => { if (activeLayer) { activeLayer.rotation = parseInt(e.target.value); document.getElementById('layerRotationRange').value = activeLayer.rotation; render(); } };
     document.getElementById('layerRotationRange').oninput = (e) => { if (activeLayer) { activeLayer.rotation = parseInt(e.target.value); document.getElementById('layerRotation').value = activeLayer.rotation; render(); } };
@@ -1231,7 +1261,7 @@
         selectLayer(null);
     };
 
-    // --- 🖱️ キャンバス上でのドラッグ移動 ＆ ルビハンドル操作（◆辺カーブ廃止・●頂点＆テキスト拡大のみ） ---
+    // --- 🖱️ キャンバス上でのドラッグ移動 ＆ ルビハンドル操作（●頂点＆テキスト拡大のみ） ---
     let dragMode = null; // 'layer' | 'vertex' | 'textScale'
     let activeNodeIndex = -1;
     let dragOffset = { x: 0, y: 0 };
@@ -1256,7 +1286,6 @@
         };
     }
 
-    // テキストのバウンディングボックスを計算（拡大ルビ用）
     function getTextBounds(layer) {
         ctx.save();
         const styleStr = `${layer.isBold ? 'bold ' : ''}${layer.isItalic ? 'italic ' : ''}`;
@@ -1272,7 +1301,6 @@
         return { hw: maxW / 2 + 16, hh: totalH / 2 + 12 };
     }
 
-    // 選択中レイヤーのルビハンドル取得（図形・モザイク＝●頂点のみ、テキスト＝四隅拡大ルビのみ）
     function getRubyHandles(layer) {
         if (!layer) return [];
         if ((layer.type === 'shape' || layer.type === 'mosaic') && layer.rubyNodes) {
@@ -1298,7 +1326,6 @@
     canvas.onmousedown = (e) => {
         const { x, y } = getCanvasCoords(e);
 
-        // 1. 選択中レイヤーのルビハンドル判定（●頂点 or 水色●テキスト拡大）
         if (activeLayer) {
             const { lx, ly } = toLocalCoords(activeLayer, x, y);
             const handles = getRubyHandles(activeLayer);
@@ -1315,7 +1342,6 @@
             }
         }
 
-        // 2. レイヤー本体の選択・移動
         for (let i = layers.length - 1; i >= 0; i--) {
             const layer = layers[i];
             const hitRadius = (layer.type === 'shape' || layer.type === 'mosaic') ? Math.max(layer.w, layer.h) * 0.55 : 150;
@@ -1365,7 +1391,6 @@
         }
     };
 
-    // ダブルクリックでルビ頂点を個別リセット
     canvas.ondblclick = (e) => {
         if (!activeLayer || (activeLayer.type !== 'shape' && activeLayer.type !== 'mosaic')) return;
         const { x, y } = getCanvasCoords(e);
@@ -1462,6 +1487,7 @@
 
         if (bgImage) {
             ctx.save();
+            ctx.globalAlpha = Math.max(0, Math.min(1, bgOpacity / 100));
             ctx.translate(canvas.width / 2, canvas.height / 2);
             ctx.rotate((bgRotation * Math.PI) / 180);
             
@@ -1480,6 +1506,8 @@
 
         layers.forEach(layer => {
             ctx.save();
+            const layerAlpha = layer.opacity !== undefined ? Math.max(0, Math.min(1, layer.opacity / 100)) : 1.0;
+            ctx.globalAlpha = layerAlpha;
             ctx.translate(layer.x, layer.y);
             ctx.rotate(((layer.rotation || 0) * Math.PI) / 180);
 
@@ -1502,8 +1530,9 @@
                     ctx.stroke();
                 }
 
-                // ●頂点ルビハンドルのみ描画（◆はなし）
+                // 選択枠・ルビハンドルは視認性のため不透明度100%で描画
                 if (activeLayer && activeLayer.id === layer.id) {
+                    ctx.globalAlpha = 1.0;
                     ctx.setLineDash([4, 4]);
                     ctx.strokeStyle = '#34d399';
                     ctx.lineWidth = 1.5;
@@ -1543,6 +1572,7 @@
                 }
 
                 if (activeLayer && activeLayer.id === layer.id) {
+                    ctx.globalAlpha = 1.0;
                     ctx.strokeStyle = '#58a6ff';
                     ctx.lineWidth = 2;
                     ctx.setLineDash([6, 6]);
@@ -1600,6 +1630,7 @@
 
                 // テキスト選択時：拡大専用ルビハンドル（水色●）を描画
                 if (activeLayer && activeLayer.id === layer.id) {
+                    ctx.globalAlpha = 1.0;
                     const { hw, hh } = getTextBounds(layer);
                     ctx.strokeStyle = '#38bdf8';
                     ctx.lineWidth = 2;
@@ -1619,11 +1650,9 @@
                 }
             }
             else if (layer.type === 'mosaic') {
-                // ルビ頂点多角形クリップ領域でモザイクを描画
                 traceRubyPolygonPath(ctx, layer);
                 ctx.clip();
 
-                // ルビ頂点の外接矩形を算出してモザイク化
                 const nodes = layer.rubyNodes || createDefaultRubyNodes('rect', layer.w, layer.h);
                 let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
                 nodes.forEach(n => {
@@ -1659,6 +1688,7 @@
 
                 // モザイク選択時：緑●頂点ルビハンドルを描画
                 if (activeLayer && activeLayer.id === layer.id) {
+                    ctx.globalAlpha = 1.0;
                     traceRubyPolygonPath(ctx, layer);
                     ctx.setLineDash([4, 4]);
                     ctx.strokeStyle = '#34d399';

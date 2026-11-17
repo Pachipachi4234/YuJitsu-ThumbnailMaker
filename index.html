@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>YuJitsu ThumbnailMaker Pro v2.4</title>
+    <title>YuJitsu ThumbnailMaker Pro v2.6</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- 日本語フォント一式 -->
     <link href="https://fonts.googleapis.com/css2?family=Corporate+Logo+Rounded:wght@700&family=Dela+Gothic+One&family=DotGothic16&family=Kaisei+Tokumin:wght@700&family=Kiwi+Maru:wght@500&family=M+PLUS+Rounded+1c:wght@800&family=Mochiy+Pop+P+One&family=Potta+One&family=Reggae+One&family=RocknRoll+One&family=Yusei+Magic&family=Zen+Maru+Gothic:wght@900&display=swap" rel="stylesheet">
@@ -23,13 +23,13 @@
     <!-- ヘッダー -->
     <header class="flex justify-between items-center border-b border-[#30363d] pb-2 flex-none">
         <div>
-            <h1 class="text-lg font-bold text-[#58a6ff]">YuJitsu ThumbnailMaker <span class="text-xs text-purple-400 font-normal">Pro v2.4</span></h1>
-            <p class="text-[11px] text-gray-400">図形ルビ直接ドラッグ変形(●頂点/◆辺カーブ)・独自プラグイン(.shml)・A+L開発者隠しページ対応</p>
+            <h1 class="text-lg font-bold text-[#58a6ff]">YuJitsu ThumbnailMaker <span class="text-xs text-purple-400 font-normal">Pro v2.6</span></h1>
+            <p class="text-[11px] text-gray-400">図形＆モザイク●頂点ルビ・テキスト拡大ルビ・.shml(~複数行/JS/Python/Java/PHP/HTML)対応</p>
         </div>
         <div class="flex items-center gap-2">
             <label class="bg-emerald-900/60 hover:bg-emerald-800 text-emerald-200 border border-emerald-600 text-xs px-3 py-2 rounded font-bold transition cursor-pointer">
                 🔌 プラグイン (.shml) 読込
-                <input type="file" id="shmlFileInput" accept=".shml" class="hidden">
+                <input type="file" id="shmlFileInput" accept=".shml,.txt" class="hidden">
             </label>
             <button id="exportPngBtn" class="bg-[#8957e5] hover:bg-[#9d6cfa] text-white text-xs px-4 py-2 rounded font-bold transition shadow-lg">
                 💾 1280x720 高画質PNG書き出し
@@ -44,17 +44,20 @@
         <div class="w-96 panel p-3 flex flex-col gap-3 overflow-y-auto flex-none" id="leftControlPanel">
             
             <!-- ① レイヤー追加 ＆ レイヤー一覧（並び替えボタン付き） -->
-            <div class="space-y-2 border-b border-[#30363d] pb-3 bg-[#010409] p-2.5 rounded border border-[#30363d]">
+            <div class="space-y-2 border-b border-[#30363d] pb-3 bg-[#010409] p-2.5 rounded border border-[#30363d]" id="layerAddSection">
                 <label class="text-xs font-bold text-[#79c0ff]">➕ レイヤー追加</label>
-                <div class="grid grid-cols-2 gap-1.5">
+                <div class="grid grid-cols-2 gap-1.5" id="layerAddButtonsGrid">
                     <button id="addTextBtn" class="btn-action bg-blue-900/40 text-blue-300">📝 文字追加</button>
                     <button id="addShapeBtn" class="btn-action bg-green-900/40 text-green-300">🔷 図形追加</button>
-                    <label class="btn-action bg-purple-900/40 text-purple-300 cursor-pointer text-center block">
+                    <label id="addSubImgLabel" class="btn-action bg-purple-900/40 text-purple-300 cursor-pointer text-center block">
                         🖼️ サブ画像
                         <input type="file" id="subFileInput" accept="image/*" class="hidden">
                     </label>
                     <button id="addMosaicBtn" class="btn-action bg-yellow-900/40 text-yellow-300">🟩 モザイク</button>
                 </div>
+
+                <!-- プラグインから追加されたカスタムUIボタン/ファイル配置エリア -->
+                <div id="pluginCustomButtonsArea" class="grid grid-cols-2 gap-1.5 empty:hidden pt-1"></div>
 
                 <div class="pt-2">
                     <div class="flex justify-between items-center">
@@ -69,7 +72,7 @@
             </div>
 
             <!-- ② 背景＆下地色設定 -->
-            <div class="space-y-2 border-b border-[#30363d] pb-3">
+            <div class="space-y-2 border-b border-[#30363d] pb-3" id="bgSettingsSection">
                 <label class="text-xs font-bold text-[#79c0ff]">🖼️ 背景 ＆ 下地グラデーション設定</label>
                 <input type="file" id="bgFileInput" accept="image/*" class="input-ui cursor-pointer">
                 
@@ -142,6 +145,9 @@
 
                 <!-- A. テキスト専用プロパティ -->
                 <div id="textInspector" class="space-y-2 hidden">
+                    <div class="bg-[#161b22] p-2 rounded border border-sky-500/40 text-[10px] text-sky-300">
+                        🔍 <strong>テキスト拡大ルビ ON：</strong> キャンバス上の四隅にある<span class="font-bold text-white">水色●ハンドル</span>をドラッグすると文字サイズを自由に拡大・縮小できます！
+                    </div>
                     <div>
                         <span class="text-[10px] text-gray-400">テキスト内容</span>
                         <textarea id="textContent" class="input-ui h-12 text-xs"></textarea>
@@ -169,7 +175,7 @@
                         </div>
                         <div>
                             <span class="text-[10px] text-gray-400">文字サイズ</span>
-                            <input type="number" id="textSize" value="70" min="10" max="250" class="input-ui">
+                            <input type="number" id="textSize" value="70" min="10" max="400" class="input-ui">
                         </div>
                     </div>
 
@@ -250,16 +256,16 @@
                     </div>
                 </div>
 
-                <!-- C. 図形専用プロパティ（キャンバス直接ルビ頂点＆辺カーブ変形） -->
+                <!-- C. 図形専用プロパティ（●頂点ルビのみ） -->
                 <div id="shapeInspector" class="space-y-2 hidden">
                     <div class="grid grid-cols-2 gap-2">
                         <div>
                             <span class="text-[10px] text-gray-400">基本ベース形状</span>
                             <select id="shapeType" class="input-ui">
-                                <option value="rect">四角ベース (4頂点+4辺ルビ)</option>
-                                <option value="circle">円・楕円ベース (8点ルビ)</option>
-                                <option value="triangle">三角ベース (3頂点+3辺ルビ)</option>
-                                <option value="star">星・集中プレート (10点ルビ)</option>
+                                <option value="rect">四角ベース (4頂点ルビ)</option>
+                                <option value="circle">円・楕円ベース (8頂点ルビ)</option>
+                                <option value="triangle">三角ベース (3頂点ルビ)</option>
+                                <option value="star">星・集中プレート (10頂点ルビ)</option>
                             </select>
                         </div>
                         <div>
@@ -273,15 +279,13 @@
                         <div><span class="text-[10px] text-gray-400">基準縦幅 (H)</span><input type="number" id="shapeH" value="180" min="20" max="720" class="input-ui"></div>
                     </div>
 
-                    <!-- ✨ ルビハンドル操作ガイド＆リセット -->
                     <div class="bg-[#161b22] p-2.5 rounded border border-emerald-500/50 space-y-1.5">
                         <div class="flex justify-between items-center">
-                            <span class="text-[10px] font-bold text-emerald-400">💎 キャンバス直接ルビ変形モード ON</span>
+                            <span class="text-[10px] font-bold text-emerald-400">💎 図形●頂点ルビ変形モード ON</span>
                             <button id="resetRubyShapeBtn" class="text-[10px] bg-emerald-900/60 hover:bg-emerald-800 px-2 py-0.5 rounded border border-emerald-500 text-emerald-200 font-bold">ルビ全リセット</button>
                         </div>
                         <ul class="text-[10px] text-gray-300 space-y-0.5 list-disc list-inside">
                             <li><span class="text-emerald-400 font-bold">● 緑ハンドル</span>：つまんで角の頂点を自由に移動</li>
-                            <li><span class="text-yellow-300 font-bold">◆ 黄ハンドル</span>：つまんで辺をグニッと曲線変形</li>
                             <li><span class="text-blue-300 font-bold">ダブルクリック</span>：つまんだ点だけ初期位置に戻す</li>
                         </ul>
                         <div class="flex items-center gap-2 pt-1">
@@ -299,14 +303,14 @@
                     </div>
                 </div>
 
-                <!-- D. モザイク専用プロパティ -->
+                <!-- D. モザイク専用プロパティ（●頂点ルビ変形付き） -->
                 <div id="mosaicInspector" class="space-y-2 hidden">
                     <div class="grid grid-cols-2 gap-2">
                         <div>
-                            <span class="text-[10px] text-gray-400">形状</span>
+                            <span class="text-[10px] text-gray-400">形状ベース</span>
                             <select id="mosaicShape" class="input-ui">
-                                <option value="rect">長方形</option>
-                                <option value="circle">円形</option>
+                                <option value="rect">四角ベース (4頂点ルビ)</option>
+                                <option value="circle">円形ベース (8頂点ルビ)</option>
                             </select>
                         </div>
                         <div>
@@ -315,18 +319,31 @@
                         </div>
                     </div>
                     <div class="grid grid-cols-2 gap-2">
-                        <div><span class="text-[10px] text-gray-400">幅 (W)</span><input type="number" id="mosaicW" value="250" min="20" max="1280" class="input-ui"></div>
-                        <div><span class="text-[10px] text-gray-400">高さ (H)</span><input type="number" id="mosaicH" value="150" min="20" max="720" class="input-ui"></div>
+                        <div><span class="text-[10px] text-gray-400">基準幅 (W)</span><input type="number" id="mosaicW" value="250" min="20" max="1280" class="input-ui"></div>
+                        <div><span class="text-[10px] text-gray-400">基準高さ (H)</span><input type="number" id="mosaicH" value="150" min="20" max="720" class="input-ui"></div>
+                    </div>
+                    <div class="bg-[#161b22] p-2 rounded border border-emerald-500/50 flex justify-between items-center">
+                        <span class="text-[10px] text-emerald-300 font-bold">💎 モザイクも緑●ルビで自由変形可能！</span>
+                        <button id="resetRubyMosaicBtn" class="text-[10px] bg-emerald-900/60 hover:bg-emerald-800 px-2 py-0.5 rounded border border-emerald-500 text-emerald-200 font-bold">ルビリセット</button>
                     </div>
                 </div>
 
+            </div>
+
+            <!-- 🐍☕🐘 プラグインのスクリプト実行ログターミナル -->
+            <div id="pluginScriptConsole" class="hidden bg-[#010409] p-2.5 rounded border border-yellow-500/50 space-y-1.5">
+                <div class="flex justify-between items-center">
+                    <span class="text-[10px] font-bold text-yellow-400">💻 .shml スクリプト実行ターミナル (Python/Java/PHP)</span>
+                    <button id="clearScriptLogBtn" class="text-[9px] text-gray-400 hover:text-white">クリア</button>
+                </div>
+                <pre id="pluginScriptOutput" class="text-[10px] font-mono text-emerald-300 bg-black p-2 rounded max-h-32 overflow-y-auto whitespace-pre-wrap"></pre>
             </div>
 
         </div>
 
         <!-- 右：メインキャンバスプレビュー -->
         <div class="flex-1 panel relative flex flex-col items-center justify-center p-4 bg-[#010409] overflow-hidden">
-            <div class="text-xs text-gray-400 absolute top-2 left-2 z-10">🖥️ Canvas (1280 x 720) — 本体ドラッグで移動 / 図形の●◆ルビハンドルで自由変形</div>
+            <div class="text-xs text-gray-400 absolute top-2 left-2 z-10">🖥️ Canvas (1280 x 720) — 本体ドラッグで移動 / 図形＆モザイクは緑●ルビで変形 / テキストは水色●ルビで拡大</div>
             <div class="relative max-w-full max-h-full flex items-center justify-center">
                 <canvas id="mainCanvas" width="1280" height="720" class="max-w-full max-h-[78vh] border border-gray-700 shadow-2xl cursor-grab active:cursor-grabbing object-contain bg-black"></canvas>
             </div>
@@ -334,16 +351,16 @@
 
     </div>
 
-    <!-- プラグインが追加されるコンテナ（既存HTMLの末尾） -->
-    <div id="shmlPluginContainer"></div>
+    <!-- [html] ブロック注入先コンテナ -->
+    <div id="shmlHtmlInjectContainer"></div>
 
     <!-- 🔒 A+L キー同時押しで出現する隠し開発者ページモーダル -->
     <div id="secretDevModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-[#161b22] border-2 border-emerald-500 rounded-xl max-w-2xl w-full max-h-[88vh] flex flex-col shadow-2xl overflow-hidden">
+        <div class="bg-[#161b22] border-2 border-emerald-500 rounded-xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
             <div class="flex justify-between items-center px-5 py-3 bg-[#010409] border-b border-[#30363d]">
                 <div class="flex items-center gap-2">
                     <span class="text-lg">🕵️‍♂️</span>
-                    <h2 class="text-base font-bold text-emerald-400">YuJitsu 隠し開発者ページ — .shml プラグイン開発キット</h2>
+                    <h2 class="text-base font-bold text-emerald-400">YuJitsu 隠し開発者ページ — 独自スクリプト (.shml) 完全リファレンス</h2>
                 </div>
                 <button id="closeSecretModalBtn" class="text-gray-400 hover:text-white font-bold text-lg px-2">✕</button>
             </div>
@@ -352,7 +369,7 @@
                 <div class="bg-emerald-950/50 border border-emerald-500/50 p-3 rounded-lg flex flex-col sm:flex-row justify-between items-center gap-3">
                     <div>
                         <div class="font-bold text-emerald-300 text-sm">📦 既存のベースHTMLファイルをダウンロード</div>
-                        <div class="text-[11px] text-gray-400 mt-0.5">現在のThumbnailMaker本体の完全HTMLコード（プラグイン注入前の状態）を保存できます。</div>
+                        <div class="text-[11px] text-gray-400 mt-0.5">現在のThumbnailMaker本体の完全HTMLコードをそのまま保存できます。</div>
                     </div>
                     <button id="downloadBaseHtmlBtn" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded shadow whitespace-nowrap">
                         ⬇️ ベースHTML保存
@@ -360,29 +377,25 @@
                 </div>
 
                 <div class="space-y-2">
-                    <h3 class="text-sm font-bold text-[#79c0ff] border-b border-[#30363d] pb-1">📖 .shml プラグインの作り方</h3>
-                    <ol class="list-decimal list-inside space-y-1 text-gray-300">
-                        <li>メモ帳やテキストエディタ（VSCodeなど）を開き、HTML形式でコードを書きます。</li>
-                        <li>保存するときにファイル名の拡張子を <strong><code class="text-emerald-300">.shml</code></strong> にして保存します（例：<code class="text-gray-400">syuchusen_plugin.shml</code>）。</li>
-                        <li>上部ヘッダーの「<strong>🔌 プラグイン (.shml) 読込</strong>」ボタンから選択すると、既存HTMLの一番下（<code class="text-gray-400"><body></code>末尾）にそのまま追加され、内のスクリプトも自動実行されます！</li>
-                    </ol>
-                </div>
-
-                <div class="space-y-1.5">
-                    <h3 class="text-sm font-bold text-[#79c0ff] border-b border-[#30363d] pb-1">🛠️ プラグインから操作できる本体グローバル変数・関数</h3>
-                    <div class="bg-[#010409] p-2.5 rounded border border-[#30363d] font-mono text-[11px] space-y-1 text-gray-300">
-                        <div><span class="text-yellow-300">canvas / ctx</span> : 1280x720のメインキャンバス本体と2Dコンテキスト</div>
-                        <div><span class="text-yellow-300">layers</span> : 現在キャンバス上にある全レイヤー配列</div>
-                        <div><span class="text-yellow-300">activeLayer</span> : 現在選択中のレイヤーオブジェクト</div>
-                        <div><span class="text-yellow-300">selectLayer(layer)</span> : レイヤーを選択してUI・キャンバスを更新</div>
-                        <div><span class="text-yellow-300">render()</span> : キャンバスを再描画する関数</div>
-                        <div><span class="text-yellow-300">leftControlPanel</span> : 左側操作パネルのDOM要素（独自ボタンをappendChild可能！）</div>
+                    <h3 class="text-sm font-bold text-[#79c0ff] border-b border-[#30363d] pb-1">📖 .shml 独自スクリプト言語の書き方</h3>
+                    <div class="bg-[#010409] p-3 rounded border border-[#30363d] font-mono text-[11px] space-y-1.5 text-gray-200">
+                        <div><span class="text-gray-500"># コメント</span> : 先頭に <code class="text-emerald-300">#</code> を書くとメモ（無視）になります</div>
+                        <div><span class="text-yellow-300">_</span> / <span class="text-yellow-300">__</span> : <code class="text-yellow-300">_</code>（1つ）でブロック区切り、<code class="text-yellow-300">__</code>（2つ）でスクリプト終了</div>
+                        <div><span class="text-pink-300">~ (複数行指定)</span> : <code>("1~5")</code> や <code>(*"元の文字","10~25")-("新文字")</code> のように行範囲を複数指定可能！</div>
+                        <div><span class="text-purple-300">[change]</span> : <code>*</code>(置き換え) / <code>+</code>(追加: <code>{button}</code>, <code>{file}</code>) / <code>=</code>(消去) / <code>/</code>(移動)</div>
+                        <div><span class="text-blue-300">対応プログラミング言語ブロック</span> :
+                            <code class="text-yellow-300">[javascript]</code> /
+                            <code class="text-emerald-300">[python]</code> /
+                            <code class="text-orange-300">[java]</code> /
+                            <code class="text-indigo-300">[php]</code>（ピアノ・ハ・ピアニッシモ！） /
+                            <code class="text-rose-300">[html]</code>
+                        </div>
                     </div>
                 </div>
 
                 <div class="space-y-1.5">
                     <div class="flex justify-between items-center">
-                        <h3 class="text-sm font-bold text-[#79c0ff]">💡 サンプルコード（コピーボタンを押すと .shml 用コードを取得できます）</h3>
+                        <h3 class="text-sm font-bold text-[#79c0ff]">💡 5言語ミックス サンプルコード（そのまま .shml で保存して動かせるよ）</h3>
                         <button id="copySampleShmlBtn" class="bg-gray-800 hover:bg-gray-700 text-gray-200 px-2 py-0.5 rounded border border-gray-600 text-[10px]">📋 コピー</button>
                     </div>
                     <pre id="sampleShmlPreview" class="bg-[#010409] p-3 rounded border border-[#30363d] font-mono text-[11px] text-emerald-300 overflow-x-auto"></pre>
@@ -393,32 +406,49 @@
 
 <script>
     const SAMPLE_SHML_TEXT = [
-        '<!-- ゆ実サムネ用 爆速プリセット追加プラグイン (.shml) -->',
-        '<div id="yukkuri-preset-plugin" style="position:fixed; bottom:16px; right:16px; background:#161b22; border:2px solid #10b981; padding:10px; border-radius:8px; z-index:40;">',
-        '  <div style="font-size:11px; font-weight:bold; color:#34d399; margin-bottom:6px;">🔌 ゆっくり文字プリセット</div>',
-        '  <button id="btn-add-reimu" style="background:#dc2626; color:white; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:bold; cursor:pointer;">🎀 霊夢風テロップ追加</button>',
-        '</div>',
-        '',
-        '<' + 'script>',
-        "  document.getElementById('btn-add-reimu').onclick = () => {",
-        '    const layer = {',
-        '      id: Date.now(),',
-        "      type: 'text',",
-        "      name: '霊夢テロップ',",
-        "      text: 'ゆっくりしていってね！',",
-        '      x: 640, y: 600,',
-        '      font: "\'Corporate Logo Rounded\', sans-serif",',
-        "      size: 76, rotation: 0, align: 'center', curve: 0,",
-        '      isBold: true, isItalic: false, isUnderline: false, isStrike: false,',
-        "      colors: ['#ffffff', '#ffcccc'],",
-        "      innerColor: '#7f1d1d', innerWidth: 10,",
-        "      outerColor: '#ef4444', outerWidth: 6,",
-        "      shadowColor: '#000000', shadowBlur: 12",
-        '    };',
-        '    layers.push(layer);',
-        '    selectLayer(layer);',
+        '[change]',
+        '# ~ で行複数指定もOK！',
+        '("図形追加",*"1~200")-("ルビ図形追加")',
+        '(+"追加する行")-("🔺 三角を追加","{button}")-{button}:<triangle>',
+        '_',
+        '[python]',
+        '("追加する行"):{',
+        'text = input("メモを入力\\n")',
+        'print(f"🐍 Python出力: {text}")',
+        '}',
+        '_',
+        '[java]',
+        '("10~20"):{',
+        'String msg = "☕ Java起動完了！";',
+        'System.out.println(msg);',
+        '}',
+        '_',
+        '[php]',
+        '# ピアノ・ハ・ピアニッシモ（弱く脆く）ブロック！',
+        '("21~30"):{',
+        '$ppp = "🎼 php(ピアノ・ハ・ピアニッシモ): 弱く脆く稼働中...";',
+        'echo $ppp;',
+        '}',
+        '_',
+        '[html]',
+        '("31~40"):{',
+        '<div style="position:fixed;bottom:14px;right:14px;background:#1e1b4b;border:1px solid #818cf8;color:#e0e7ff;padding:6px 12px;border-radius:8px;font-size:11px;z-index:40;">🎼 PHP(弱く脆く) プラグイン稼働中</div>',
+        '}',
+        '_',
+        '[javascript]',
+        ':',
+        "onShmlAction('triangle', () => {",
+        '  const w = 260, h = 220;',
+        '  const layer = {',
+        '    id: Date.now(), type: "shape", name: "三角ルビ図形",',
+        '    shapeType: "triangle", x: 640, y: 360, w: w, h: h, rotation: 0,',
+        '    cornerRound: 0, rubyNodes: createDefaultRubyNodes("triangle", w, h),',
+        '    strokeColor: "#ffffff", strokeWidth: 5, colors: ["#ffdd00", "#ff5500"]',
         '  };',
-        '</' + 'script>'
+        '  layers.push(layer);',
+        '  selectLayer(layer);',
+        '});',
+        '__'
     ].join('\n');
 
     document.getElementById('sampleShmlPreview').textContent = SAMPLE_SHML_TEXT;
@@ -440,6 +470,12 @@
     let layers = [];
     let activeLayer = null;
 
+    const shmlActionHandlers = {};
+    function onShmlAction(actionName, callback) {
+        const cleanName = actionName.replace(/^<|>$/g, '');
+        shmlActionHandlers[cleanName] = callback;
+    }
+
     const filterMap = {
         none: '',
         glow: 'drop-shadow(0 0 15px rgba(255,255,255,0.8)) brightness(1.2)',
@@ -453,30 +489,22 @@
         warm: 'sepia(30%) saturate(140%)'
     };
 
-    // --- 💎 図形ルビ頂点・辺カーブ生成ヘルパー ---
+    // --- 💎 図形 ＆ モザイク用 ●頂点ルビ生成ヘルパー ---
     function createDefaultRubyNodes(shapeType, w, h) {
         const hw = w / 2;
         const hh = h / 2;
         if (shapeType === 'triangle') {
             return [
-                { vx: 0, vy: -hh, cx: 0, cy: 0 },
-                { vx: hw, vy: hh, cx: 0, cy: 0 },
-                { vx: -hw, vy: hh, cx: 0, cy: 0 }
+                { vx: 0, vy: -hh },
+                { vx: hw, vy: hh },
+                { vx: -hw, vy: hh }
             ];
         } else if (shapeType === 'circle') {
             const pts = [];
             const n = 8;
-            const k = 0.28; // 円に近づけるためのベジェ膨らみ係数
             for (let i = 0; i < n; i++) {
-                const a1 = (i / n) * Math.PI * 2 - Math.PI / 2;
-                const a2 = ((i + 1) / n) * Math.PI * 2 - Math.PI / 2;
-                const x1 = Math.cos(a1) * hw, y1 = Math.sin(a1) * hh;
-                const x2 = Math.cos(a2) * hw, y2 = Math.sin(a2) * hh;
-                const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
-                const amid = (a1 + a2) / 2;
-                const targetX = Math.cos(amid) * hw * (1 + k);
-                const targetY = Math.sin(amid) * hh * (1 + k);
-                pts.push({ vx: x1, vy: y1, cx: targetX - mx, cy: targetY - my });
+                const a = (i / n) * Math.PI * 2 - Math.PI / 2;
+                pts.push({ vx: Math.cos(a) * hw, vy: Math.sin(a) * hh });
             }
             return pts;
         } else if (shapeType === 'star') {
@@ -485,16 +513,15 @@
             for (let i = 0; i < n; i++) {
                 const a = (i / n) * Math.PI * 2 - Math.PI / 2;
                 const rScale = (i % 2 === 0) ? 1.0 : 0.48;
-                pts.push({ vx: Math.cos(a) * hw * rScale, vy: Math.sin(a) * hh * rScale, cx: 0, cy: 0 });
+                pts.push({ vx: Math.cos(a) * hw * rScale, vy: Math.sin(a) * hh * rScale });
             }
             return pts;
         } else {
-            // rect (デフォルト4頂点＋4辺制御)
             return [
-                { vx: -hw, vy: -hh, cx: 0, cy: 0 },
-                { vx:  hw, vy: -hh, cx: 0, cy: 0 },
-                { vx:  hw, vy:  hh, cx: 0, cy: 0 },
-                { vx: -hw, vy:  hh, cx: 0, cy: 0 }
+                { vx: -hw, vy: -hh },
+                { vx:  hw, vy: -hh },
+                { vx:  hw, vy:  hh },
+                { vx: -hw, vy:  hh }
             ];
         }
     }
@@ -537,34 +564,306 @@
 
     document.getElementById('copySampleShmlBtn').onclick = () => {
         navigator.clipboard.writeText(SAMPLE_SHML_TEXT).then(() => {
-            alert('サンプルの .shml コードをクリップボードにコピーしました！');
+            alert('サンプルの .shml 独自スクリプトをクリップボードにコピーしました！');
         });
     };
 
-    // --- 🔌 .shml 独自プラグイン読み込み処理 ---
+    document.getElementById('clearScriptLogBtn').onclick = () => {
+        document.getElementById('pluginScriptOutput').textContent = '';
+    };
+
+    function logPluginConsole(text) {
+        const consoleBox = document.getElementById('pluginScriptConsole');
+        const outputEl = document.getElementById('pluginScriptOutput');
+        consoleBox.classList.remove('hidden');
+        outputEl.textContent += text + '\n';
+    }
+
+    // --- 🐍 Python ブロック実行 ---
+    function runShmlPythonBlock(code) {
+        const vars = {};
+        const lines = code.split('\n');
+        for (let rawLine of lines) {
+            const line = rawLine.trim();
+            if (!line || line.startsWith('#')) continue;
+
+            const assignMatch = line.match(/^([a-zA-Z_]\w*)\s*(?:=\+|=|\+=)\s*(.+)$/);
+            if (assignMatch) {
+                const varName = assignMatch[1];
+                let expr = assignMatch[2].trim();
+                const inputMatch = expr.match(/^input\((["'])(.*?)\1\)$/);
+                if (inputMatch) {
+                    const promptMsg = inputMatch[2].replace(/\\n/g, '\n');
+                    const userVal = window.prompt(promptMsg, '') ?? '';
+                    vars[varName] = (vars[varName] || '') + userVal;
+                } else {
+                    expr = expr.replace(/^["']|["']$/g, '');
+                    vars[varName] = expr;
+                }
+                continue;
+            }
+
+            const printMatch = line.match(/^print\((.+)\)$/);
+            if (printMatch) {
+                let inner = printMatch[1].trim();
+                if (inner.startsWith('f"') || inner.startsWith("f'")) {
+                    inner = inner.slice(2, -1);
+                    inner = inner.replace(/\{([a-zA-Z_]\w*)\}/g, (_, k) => (vars[k] !== undefined ? vars[k] : ''));
+                } else {
+                    inner = inner.replace(/^["']|["']$/g, '');
+                    if (vars[inner] !== undefined) inner = vars[inner];
+                }
+                logPluginConsole(inner);
+            }
+        }
+    }
+
+    // --- ☕ JAVA ブロック実行 ---
+    function runShmlJavaBlock(code) {
+        const vars = {};
+        const lines = code.split('\n');
+        for (let rawLine of lines) {
+            const line = rawLine.trim().replace(/;$/, '');
+            if (!line || line.startsWith('//') || line.startsWith('#')) continue;
+
+            const declMatch = line.match(/^(?:String|int|double|var)\s+([a-zA-Z_]\w*)\s*=\s*(.+)$/);
+            if (declMatch) {
+                const name = declMatch[1];
+                const val = declMatch[2].trim().replace(/^["']|["']$/g, '');
+                vars[name] = val;
+                continue;
+            }
+
+            const sysOutMatch = line.match(/^System\.out\.println\((.+)\)$/);
+            if (sysOutMatch) {
+                let expr = sysOutMatch[1].trim();
+                if (vars[expr] !== undefined) {
+                    logPluginConsole(vars[expr]);
+                } else {
+                    logPluginConsole(expr.replace(/^["']|["']$/g, ''));
+                }
+            }
+        }
+    }
+
+    // --- 🎼 PHP（ピアノ・ハ・ピアニッシモ：弱く脆く）ブロック実行 ---
+    function runShmlPhpBlock(code) {
+        const vars = {};
+        const lines = code.split('\n');
+        for (let rawLine of lines) {
+            const line = rawLine.trim().replace(/;$/, '');
+            if (!line || line.startsWith('//') || line.startsWith('#') || line === '<?php' || line === '?>') continue;
+
+            const varMatch = line.match(/^\$([a-zA-Z_]\w*)\s*=\s*(.+)$/);
+            if (varMatch) {
+                const name = varMatch[1];
+                const val = varMatch[2].trim().replace(/^["']|["']$/g, '');
+                vars[name] = val;
+                continue;
+            }
+
+            const echoMatch = line.match(/^echo\s+(.+)$/);
+            if (echoMatch) {
+                let expr = echoMatch[1].trim();
+                if (expr.startsWith('$')) {
+                    const key = expr.slice(1);
+                    logPluginConsole(vars[key] !== undefined ? vars[key] : '');
+                } else {
+                    logPluginConsole(expr.replace(/^["']|["']$/g, ''));
+                }
+            }
+        }
+    }
+
+    // --- 🌐 HTML ブロック注入 ---
+    function runShmlHtmlBlock(htmlSnippet) {
+        const container = document.getElementById('shmlHtmlInjectContainer');
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = htmlSnippet;
+        const scripts = Array.from(wrapper.querySelectorAll('script'));
+        scripts.forEach(oldScript => {
+            const newScript = document.createElement('script');
+            Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+            newScript.textContent = oldScript.textContent;
+            oldScript.parentNode.replaceChild(newScript, oldScript);
+        });
+        container.appendChild(wrapper);
+    }
+
+    // --- 🔌 独自スクリプト言語 (.shml) パーサー＆実行エンジン（~ 複数行指定対応） ---
+    function parseLineRangeSpec(specStr) {
+        // "1~5" のような ~ 複数行指定を { start, end } に変換
+        if (!specStr) return null;
+        const m = specStr.match(/^(\d+)\s*~\s*(\d+)$/);
+        if (m) return { start: parseInt(m[1], 10), end: parseInt(m[2], 10) };
+        const single = specStr.match(/^(\d+)$/);
+        if (single) return { start: parseInt(single[1], 10), end: parseInt(single[1], 10) };
+        return null;
+    }
+
+    function executeShmlScript(rawScript) {
+        const endIdx = rawScript.indexOf('\n__');
+        const activeText = endIdx !== -1 ? rawScript.slice(0, endIdx) : rawScript.replace(/__\s*$/, '');
+        const sections = activeText.split(/\n_\s*\n|\n_\s*$/);
+
+        sections.forEach(sec => {
+            const trimmed = sec.trim();
+            if (!trimmed) return;
+
+            const headerMatch = trimmed.match(/^\[([^\]]+)\]\s*\n([\s\S]*)$/);
+            if (!headerMatch) return;
+
+            const lang = headerMatch[1].trim().toLowerCase();
+            const body = headerMatch[2];
+
+            if (lang === 'change') {
+                parseChangeBlock(body);
+            } else if (lang === 'javascript' || lang === 'js') {
+                const code = extractBlockCode(body);
+                if (code) {
+                    const scriptEl = document.createElement('script');
+                    scriptEl.textContent = code;
+                    document.body.appendChild(scriptEl);
+                }
+            } else if (lang === 'python' || lang === 'py') {
+                const code = extractBlockCode(body);
+                if (code) runShmlPythonBlock(code);
+            } else if (lang === 'java') {
+                const code = extractBlockCode(body);
+                if (code) runShmlJavaBlock(code);
+            } else if (lang === 'php') {
+                const code = extractBlockCode(body);
+                if (code) runShmlPhpBlock(code);
+            } else if (lang === 'html') {
+                const code = extractBlockCode(body);
+                if (code) runShmlHtmlBlock(code);
+            }
+        });
+    }
+
+    function extractBlockCode(body) {
+        const cleanLines = body.split('\n').filter(l => !l.trim().startsWith('#'));
+        const joined = cleanLines.join('\n').trim();
+        // ("1~10"):{ ... } または ("追加する行"):{ ... } または :{ ... } 形式に対応
+        const blockMatch = joined.match(/^(?:\("[^"]*"\))?:\s*\{([\s\S]*)\}$/);
+        if (blockMatch) return blockMatch[1].trim();
+        const colonOnlyMatch = joined.match(/^:\s*([\s\S]*)$/);
+        if (colonOnlyMatch) return colonOnlyMatch[1].trim();
+        return joined;
+    }
+
+    function parseChangeBlock(body) {
+        const lines = body.split('\n');
+        for (let rawLine of lines) {
+            const line = rawLine.trim();
+            if (!line || line.startsWith('#')) continue;
+
+            // 1. 置き換え: ("元の文字",*"1~50")-("変える文字")
+            const replaceMatch = line.match(/^\(\*?"([^"]+)"(?:,\*?"([^"]*)")?\)\s*-\s*\("([^"]+)"\)/);
+            if (replaceMatch) {
+                const oldText = replaceMatch[1];
+                const rangeInfo = parseLineRangeSpec(replaceMatch[2]);
+                const newText = replaceMatch[3];
+                const targets = Array.from(document.querySelectorAll('#leftControlPanel button, #leftControlPanel label, #leftControlPanel span'));
+                targets.forEach((el, idx) => {
+                    const lineNum = idx + 1;
+                    if (rangeInfo && (lineNum < rangeInfo.start || lineNum > rangeInfo.end)) return;
+                    if (el.childNodes.length === 1 && el.textContent.includes(oldText)) {
+                        el.textContent = el.textContent.replace(oldText, newText);
+                    } else {
+                        el.childNodes.forEach(node => {
+                            if (node.nodeType === Node.TEXT_NODE && node.textContent.includes(oldText)) {
+                                node.textContent = node.textContent.replace(oldText, newText);
+                            }
+                        });
+                    }
+                });
+                continue;
+            }
+
+            // 2. 追加: (+"追加する行")-("表示名","{button}")-{button}:<id>
+            const addMatch = line.match(/^\(\+"([^"]*)"\)\s*-\s*\("([^"]+)"(?:,"(\{button\}|\{file\})")?\)(?:-\{(\w+)\})?(?::<([^>]+)>)?/);
+            if (addMatch) {
+                const labelText = addMatch[2];
+                const widgetType = (addMatch[3] || addMatch[4] || '{button}').replace(/[{}]/g, '');
+                const actionId = addMatch[5] || labelText;
+
+                const customArea = document.getElementById('pluginCustomButtonsArea');
+
+                if (widgetType === 'file') {
+                    const labelEl = document.createElement('label');
+                    labelEl.className = 'btn-action bg-emerald-900/50 text-emerald-200 border-emerald-600 cursor-pointer text-center block';
+                    labelEl.textContent = labelText;
+
+                    const fileInput = document.createElement('input');
+                    fileInput.type = 'file';
+                    fileInput.className = 'hidden';
+                    fileInput.onchange = (ev) => {
+                        const f = ev.target.files[0];
+                        if (f && shmlActionHandlers[actionId]) {
+                            shmlActionHandlers[actionId](f, ev);
+                        }
+                        window.dispatchEvent(new CustomEvent('shml:' + actionId, { detail: { file: f } }));
+                    };
+                    labelEl.appendChild(fileInput);
+                    customArea.appendChild(labelEl);
+                } else {
+                    const btn = document.createElement('button');
+                    btn.className = 'btn-action bg-emerald-900/50 text-emerald-200 border-emerald-600';
+                    btn.textContent = labelText;
+                    btn.setAttribute('data-shml-id', actionId);
+                    btn.onclick = (ev) => {
+                        if (shmlActionHandlers[actionId]) {
+                            shmlActionHandlers[actionId](ev);
+                        }
+                        window.dispatchEvent(new CustomEvent('shml:' + actionId, { detail: { button: btn } }));
+                    };
+                    customArea.appendChild(btn);
+                }
+                continue;
+            }
+
+            // 3. 消去: (="消す文字") または (="消す文字","1~10")
+            const delMatch = line.match(/^\(="([^"]+)"(?:,"([^"]*)")?\)/);
+            if (delMatch) {
+                const targetText = delMatch[1];
+                const candidates = document.querySelectorAll('#layerAddButtonsGrid button, #layerAddButtonsGrid label, #pluginCustomButtonsArea button, #pluginCustomButtonsArea label');
+                candidates.forEach(el => {
+                    if (el.textContent.includes(targetText)) {
+                        el.style.display = 'none';
+                    }
+                });
+                continue;
+            }
+
+            // 4. 移動: (/"移動する文字")-("移動先行")
+            const moveMatch = line.match(/^\(\/"([^"]+)"(?:,"([^"]*)")?\)\s*-\s*\("([^"]*)"\)/);
+            if (moveMatch) {
+                const moveText = moveMatch[1];
+                const grid = document.getElementById('layerAddButtonsGrid');
+                const items = Array.from(grid.children);
+                const found = items.find(el => el.textContent.includes(moveText));
+                if (found) {
+                    grid.appendChild(found);
+                }
+                continue;
+            }
+        }
+    }
+
     document.getElementById('shmlFileInput').onchange = (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
         const reader = new FileReader();
         reader.onload = (ev) => {
-            const htmlContent = ev.target.result;
-            const container = document.getElementById('shmlPluginContainer');
-            
-            const wrapper = document.createElement('div');
-            wrapper.setAttribute('data-shml-plugin', file.name);
-            wrapper.innerHTML = htmlContent;
-
-            const scripts = Array.from(wrapper.querySelectorAll('script'));
-            scripts.forEach(oldScript => {
-                const newScript = document.createElement('script');
-                Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-                newScript.textContent = oldScript.textContent;
-                oldScript.parentNode.replaceChild(newScript, oldScript);
-            });
-
-            container.appendChild(wrapper);
-            alert(`プラグイン「${file.name}」を読み込み、HTMLの末尾に追加しました！`);
+            try {
+                executeShmlScript(ev.target.result);
+                alert(`独自スクリプト「${file.name}」を解析・適用しました！`);
+            } catch (err) {
+                console.error(err);
+                alert('スクリプトの解析中にエラーが発生しました: ' + err.message);
+            }
             e.target.value = '';
         };
         reader.readAsText(file, 'UTF-8');
@@ -675,9 +974,12 @@
     };
 
     document.getElementById('addMosaicBtn').onclick = () => {
+        const w = 300, h = 200;
         const layer = {
             id: Date.now(), type: 'mosaic', name: `モザイク (${layers.filter(l=>l.type==='mosaic').length+1})`,
-            shape: 'rect', x: 640, y: 360, w: 300, h: 200, rotation: 0, tileSize: 15
+            shape: 'rect', x: 640, y: 360, w: w, h: h, rotation: 0, tileSize: 15,
+            cornerRound: 0,
+            rubyNodes: createDefaultRubyNodes('rect', w, h)
         };
         layers.push(layer); selectLayer(layer);
     };
@@ -727,7 +1029,7 @@
         document.getElementById('layerRotationRange').value = layer.rotation || 0;
 
         if (layer.type === 'text') {
-            document.getElementById('inspectorTitle').innerText = '📝 文字プロパティ';
+            document.getElementById('inspectorTitle').innerText = '📝 文字プロパティ (拡大ルビ付き)';
             textInspector.classList.remove('hidden');
             document.getElementById('textContent').value = layer.text;
             document.getElementById('fontFamily').value = layer.font;
@@ -752,7 +1054,7 @@
             document.getElementById('imgBlur').value = layer.blur;
             document.getElementById('imgBrightness').value = layer.brightness;
         } else if (layer.type === 'shape') {
-            document.getElementById('inspectorTitle').innerText = '🔷 図形プロパティ (ルビ変形)';
+            document.getElementById('inspectorTitle').innerText = '🔷 図形プロパティ (●頂点ルビ)';
             shapeInspector.classList.remove('hidden');
             document.getElementById('shapeType').value = layer.shapeType;
             document.getElementById('shapeW').value = layer.w;
@@ -762,7 +1064,7 @@
             document.getElementById('shapeStrokeWidth').value = layer.strokeWidth;
             renderShapeColorsPickers();
         } else if (layer.type === 'mosaic') {
-            document.getElementById('inspectorTitle').innerText = '🟩 モザイクプロパティ';
+            document.getElementById('inspectorTitle').innerText = '🟩 モザイクプロパティ (●頂点ルビ)';
             mosaicInspector.classList.remove('hidden');
             document.getElementById('mosaicShape').value = layer.shape;
             document.getElementById('mosaicW').value = layer.w;
@@ -792,7 +1094,7 @@
         if (!activeLayer || activeLayer.type !== 'text') return;
         activeLayer.text = document.getElementById('textContent').value;
         activeLayer.font = document.getElementById('fontFamily').value;
-        activeLayer.size = parseInt(document.getElementById('textSize').value);
+        activeLayer.size = parseInt(document.getElementById('textSize').value) || 40;
         activeLayer.align = document.getElementById('textAlign').value;
         activeLayer.curve = parseInt(document.getElementById('textCurve').value);
         activeLayer.innerColor = document.getElementById('innerColor').value;
@@ -853,8 +1155,6 @@
         activeLayer.rubyNodes.forEach(node => {
             node.vx *= scaleX;
             node.vy *= scaleY;
-            node.cx *= scaleX;
-            node.cy *= scaleY;
         });
         activeLayer.w = newW;
         activeLayer.h = newH;
@@ -891,17 +1191,39 @@
     }
     document.getElementById('addShapeColorBtn').onclick = () => { if (activeLayer && activeLayer.colors) { activeLayer.colors.push('#ffffff'); renderShapeColorsPickers(); render(); } };
 
+    document.getElementById('mosaicShape').onchange = (e) => {
+        if (!activeLayer || activeLayer.type !== 'mosaic') return;
+        activeLayer.shape = e.target.value;
+        activeLayer.rubyNodes = createDefaultRubyNodes(activeLayer.shape, activeLayer.w, activeLayer.h);
+        render();
+    };
+
     function updateMosaicLayer() {
         if (!activeLayer || activeLayer.type !== 'mosaic') return;
-        activeLayer.shape = document.getElementById('mosaicShape').value;
-        activeLayer.w = parseInt(document.getElementById('mosaicW').value);
-        activeLayer.h = parseInt(document.getElementById('mosaicH').value);
+        const newW = parseInt(document.getElementById('mosaicW').value) || 100;
+        const newH = parseInt(document.getElementById('mosaicH').value) || 100;
+        const scaleX = newW / (activeLayer.w || 1);
+        const scaleY = newH / (activeLayer.h || 1);
+        if (activeLayer.rubyNodes) {
+            activeLayer.rubyNodes.forEach(node => {
+                node.vx *= scaleX;
+                node.vy *= scaleY;
+            });
+        }
+        activeLayer.w = newW;
+        activeLayer.h = newH;
         activeLayer.tileSize = parseInt(document.getElementById('mosaicTileSize').value);
         render();
     }
-    ['mosaicShape', 'mosaicW', 'mosaicH', 'mosaicTileSize'].forEach(id => {
+    ['mosaicW', 'mosaicH', 'mosaicTileSize'].forEach(id => {
         document.getElementById(id).oninput = updateMosaicLayer;
     });
+
+    document.getElementById('resetRubyMosaicBtn').onclick = () => {
+        if (!activeLayer || activeLayer.type !== 'mosaic') return;
+        activeLayer.rubyNodes = createDefaultRubyNodes(activeLayer.shape, activeLayer.w, activeLayer.h);
+        render();
+    };
 
     document.getElementById('deleteLayerBtn').onclick = () => {
         if (!activeLayer) return;
@@ -909,10 +1231,12 @@
         selectLayer(null);
     };
 
-    // --- 🖱️ キャンバス上でのドラッグ移動 ＆ ルビ頂点・辺ハンドル操作 ---
-    let dragMode = null; // 'layer' | 'vertex' | 'edge'
+    // --- 🖱️ キャンバス上でのドラッグ移動 ＆ ルビハンドル操作（◆辺カーブ廃止・●頂点＆テキスト拡大のみ） ---
+    let dragMode = null; // 'layer' | 'vertex' | 'textScale'
     let activeNodeIndex = -1;
     let dragOffset = { x: 0, y: 0 };
+    let initialTextScaleDist = 1;
+    let initialTextSize = 80;
 
     function getCanvasCoords(e) {
         const rect = canvas.getBoundingClientRect();
@@ -922,7 +1246,6 @@
         };
     }
 
-    // ワールド座標 -> レイヤーローカル座標変換（回転対応）
     function toLocalCoords(layer, wx, wy) {
         const dx = wx - layer.x;
         const dy = wy - layer.y;
@@ -933,36 +1256,60 @@
         };
     }
 
-    // 選択中図形のルビハンドル座標を取得
+    // テキストのバウンディングボックスを計算（拡大ルビ用）
+    function getTextBounds(layer) {
+        ctx.save();
+        const styleStr = `${layer.isBold ? 'bold ' : ''}${layer.isItalic ? 'italic ' : ''}`;
+        ctx.font = `${styleStr}${layer.size}px ${layer.font}`;
+        const lines = layer.text.split('\n');
+        let maxW = 60;
+        lines.forEach(line => {
+            const w = ctx.measureText(line).width;
+            if (w > maxW) maxW = w;
+        });
+        ctx.restore();
+        const totalH = Math.max(40, lines.length * layer.size * 1.2);
+        return { hw: maxW / 2 + 16, hh: totalH / 2 + 12 };
+    }
+
+    // 選択中レイヤーのルビハンドル取得（図形・モザイク＝●頂点のみ、テキスト＝四隅拡大ルビのみ）
     function getRubyHandles(layer) {
-        if (!layer || layer.type !== 'shape' || !layer.rubyNodes) return [];
-        const handles = [];
-        const nodes = layer.rubyNodes;
-        const n = nodes.length;
-        for (let i = 0; i < n; i++) {
-            const p0 = nodes[i];
-            const p1 = nodes[(i + 1) % n];
-            // 頂点ハンドル (vertex)
-            handles.push({ kind: 'vertex', index: i, lx: p0.vx, ly: p0.vy });
-            // 辺の中間ベジェ曲線ハンドル (edge)
-            const midX = (p0.vx + p1.vx) / 2 + p0.cx * 0.5;
-            const midY = (p0.vy + p1.vy) / 2 + p0.cy * 0.5;
-            handles.push({ kind: 'edge', index: i, lx: midX, ly: midY });
+        if (!layer) return [];
+        if ((layer.type === 'shape' || layer.type === 'mosaic') && layer.rubyNodes) {
+            return layer.rubyNodes.map((p, i) => ({
+                kind: 'vertex',
+                index: i,
+                lx: p.vx,
+                ly: p.vy
+            }));
         }
-        return handles;
+        if (layer.type === 'text') {
+            const { hw, hh } = getTextBounds(layer);
+            return [
+                { kind: 'textScale', index: 0, lx: -hw, ly: -hh },
+                { kind: 'textScale', index: 1, lx:  hw, ly: -hh },
+                { kind: 'textScale', index: 2, lx:  hw, ly:  hh },
+                { kind: 'textScale', index: 3, lx: -hw, ly:  hh }
+            ];
+        }
+        return [];
     }
 
     canvas.onmousedown = (e) => {
         const { x, y } = getCanvasCoords(e);
 
-        // 1. まず選択中の図形の「ルビハンドル（●頂点 / ◆辺）」のヒット判定を最優先！
-        if (activeLayer && activeLayer.type === 'shape') {
+        // 1. 選択中レイヤーのルビハンドル判定（●頂点 or 水色●テキスト拡大）
+        if (activeLayer) {
             const { lx, ly } = toLocalCoords(activeLayer, x, y);
             const handles = getRubyHandles(activeLayer);
             for (const h of handles) {
                 if (Math.hypot(lx - h.lx, ly - h.ly) <= 18) {
                     dragMode = h.kind;
                     activeNodeIndex = h.index;
+                    if (h.kind === 'textScale') {
+                        initialTextScaleDist = Math.max(10, Math.hypot(lx, ly));
+                        initialTextSize = activeLayer.size;
+                    }
                     return;
                 }
             }
@@ -971,7 +1318,7 @@
         // 2. レイヤー本体の選択・移動
         for (let i = layers.length - 1; i >= 0; i--) {
             const layer = layers[i];
-            const hitRadius = layer.type === 'shape' ? Math.max(layer.w, layer.h) * 0.55 : 150;
+            const hitRadius = (layer.type === 'shape' || layer.type === 'mosaic') ? Math.max(layer.w, layer.h) * 0.55 : 150;
             const dist = Math.hypot(x - layer.x, y - layer.y);
             if (dist < hitRadius) {
                 selectLayer(layer);
@@ -991,53 +1338,46 @@
                 activeLayer.x = x - dragOffset.x;
                 activeLayer.y = y - dragOffset.y;
                 render();
-            } else if (dragMode === 'vertex' && activeLayer.type === 'shape') {
+            } else if (dragMode === 'vertex' && (activeLayer.type === 'shape' || activeLayer.type === 'mosaic')) {
                 const { lx, ly } = toLocalCoords(activeLayer, x, y);
                 activeLayer.rubyNodes[activeNodeIndex].vx = lx;
                 activeLayer.rubyNodes[activeNodeIndex].vy = ly;
                 render();
-            } else if (dragMode === 'edge' && activeLayer.type === 'shape') {
+            } else if (dragMode === 'textScale' && activeLayer.type === 'text') {
                 const { lx, ly } = toLocalCoords(activeLayer, x, y);
-                const nodes = activeLayer.rubyNodes;
-                const p0 = nodes[activeNodeIndex];
-                const p1 = nodes[(activeNodeIndex + 1) % nodes.length];
-                const baseMidX = (p0.vx + p1.vx) / 2;
-                const baseMidY = (p0.vy + p1.vy) / 2;
-                p0.cx = (lx - baseMidX) * 2;
-                p0.cy = (ly - baseMidY) * 2;
+                const curDist = Math.max(10, Math.hypot(lx, ly));
+                const ratio = curDist / initialTextScaleDist;
+                const newSize = Math.min(400, Math.max(12, Math.round(initialTextSize * ratio)));
+                activeLayer.size = newSize;
+                document.getElementById('textSize').value = newSize;
                 render();
             }
             return;
         }
 
-        // ホバー時のカーソル変更（ルビハンドルの上ならcrosshair）
-        if (activeLayer && activeLayer.type === 'shape') {
+        if (activeLayer) {
             const { lx, ly } = toLocalCoords(activeLayer, x, y);
             const handles = getRubyHandles(activeLayer);
             const overHandle = handles.some(h => Math.hypot(lx - h.lx, ly - h.ly) <= 18);
-            canvas.style.cursor = overHandle ? 'crosshair' : 'grab';
+            canvas.style.cursor = overHandle ? 'nwse-resize' : 'grab';
         } else {
             canvas.style.cursor = 'grab';
         }
     };
 
-    // ダブルクリックでルビ頂点・辺を個別リセット
+    // ダブルクリックでルビ頂点を個別リセット
     canvas.ondblclick = (e) => {
-        if (!activeLayer || activeLayer.type !== 'shape') return;
+        if (!activeLayer || (activeLayer.type !== 'shape' && activeLayer.type !== 'mosaic')) return;
         const { x, y } = getCanvasCoords(e);
         const { lx, ly } = toLocalCoords(activeLayer, x, y);
         const handles = getRubyHandles(activeLayer);
-        const defaults = createDefaultRubyNodes(activeLayer.shapeType, activeLayer.w, activeLayer.h);
+        const baseType = activeLayer.type === 'shape' ? activeLayer.shapeType : activeLayer.shape;
+        const defaults = createDefaultRubyNodes(baseType, activeLayer.w, activeLayer.h);
 
         for (const h of handles) {
-            if (Math.hypot(lx - h.lx, ly - h.ly) <= 20) {
-                if (h.kind === 'vertex' && defaults[h.index]) {
-                    activeLayer.rubyNodes[h.index].vx = defaults[h.index].vx;
-                    activeLayer.rubyNodes[h.index].vy = defaults[h.index].vy;
-                } else if (h.kind === 'edge') {
-                    activeLayer.rubyNodes[h.index].cx = defaults[h.index] ? defaults[h.index].cx : 0;
-                    activeLayer.rubyNodes[h.index].cy = defaults[h.index] ? defaults[h.index].cy : 0;
-                }
+            if (Math.hypot(lx - h.lx, ly - h.ly) <= 20 && defaults[h.index]) {
+                activeLayer.rubyNodes[h.index].vx = defaults[h.index].vx;
+                activeLayer.rubyNodes[h.index].vy = defaults[h.index].vy;
                 render();
                 break;
             }
@@ -1047,7 +1387,6 @@
     canvas.onmouseup = () => { dragMode = null; activeNodeIndex = -1; };
     canvas.onmouseleave = () => { dragMode = null; activeNodeIndex = -1; };
 
-    // --- 本物レインボーエフェクトを描画するヘルパー関数 ---
     function drawRainbowMask(drawAction, width, height) {
         const rainCanvas = document.createElement('canvas');
         rainCanvas.width = width; rainCanvas.height = height;
@@ -1070,16 +1409,15 @@
         return rainCanvas;
     }
 
-    // --- 💎 ルビ頂点・ベジェパス描画ヘルパー ---
-    function traceRubyPath(ctx, layer) {
+    // --- 💎 ●頂点ルビ多角形パス描画ヘルパー（図形・モザイク共通） ---
+    function traceRubyPolygonPath(targetCtx, layer) {
         const nodes = layer.rubyNodes;
         if (!nodes || nodes.length === 0) return;
         const n = nodes.length;
         const round = layer.cornerRound || 0;
 
-        ctx.beginPath();
+        targetCtx.beginPath();
         if (round > 0) {
-            // 角丸ルビ補間モード
             for (let i = 0; i < n; i++) {
                 const prev = nodes[(i - 1 + n) % n];
                 const curr = nodes[i];
@@ -1097,30 +1435,23 @@
                 const ex = curr.vx + (v2x / len2) * r2;
                 const ey = curr.vy + (v2y / len2) * r2;
 
-                if (i === 0) ctx.moveTo(sx, sy);
-                else ctx.lineTo(sx, sy);
-                ctx.quadraticCurveTo(curr.vx, curr.vy, ex, ey);
+                if (i === 0) targetCtx.moveTo(sx, sy);
+                else targetCtx.lineTo(sx, sy);
+                targetCtx.quadraticCurveTo(curr.vx, curr.vy, ex, ey);
             }
-            ctx.closePath();
+            targetCtx.closePath();
         } else {
-            // 自由頂点 ＋ 辺カーブ（ベジェ）モード
-            ctx.moveTo(nodes[0].vx, nodes[0].vy);
-            for (let i = 0; i < n; i++) {
-                const p0 = nodes[i];
-                const p1 = nodes[(i + 1) % n];
-                const ctrlX = (p0.vx + p1.vx) / 2 + p0.cx;
-                const ctrlY = (p0.vy + p1.vy) / 2 + p0.cy;
-                ctx.quadraticCurveTo(ctrlX, ctrlY, p1.vx, p1.vy);
+            targetCtx.moveTo(nodes[0].vx, nodes[0].vy);
+            for (let i = 1; i < n; i++) {
+                targetCtx.lineTo(nodes[i].vx, nodes[i].vy);
             }
-            ctx.closePath();
+            targetCtx.closePath();
         }
     }
 
-    // --- 🎨 メインレンダリングエンジン ---
     function render() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // 1. 下地マルチグラデーション
         const rad = (bgGradAngle * Math.PI) / 180;
         const x2 = canvas.width / 2 + Math.cos(rad) * canvas.width;
         const y2 = canvas.height / 2 + Math.sin(rad) * canvas.height;
@@ -1129,7 +1460,6 @@
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // 2. 背景画像描画
         if (bgImage) {
             ctx.save();
             ctx.translate(canvas.width / 2, canvas.height / 2);
@@ -1148,7 +1478,6 @@
             ctx.restore();
         }
 
-        // 3. 各レイヤー描画
         layers.forEach(layer => {
             ctx.save();
             ctx.translate(layer.x, layer.y);
@@ -1167,13 +1496,13 @@
                 }
                 ctx.fillStyle = shapeFill;
 
-                traceRubyPath(ctx, layer);
+                traceRubyPolygonPath(ctx, layer);
                 ctx.fill();
                 if (layer.strokeWidth > 0) {
                     ctx.stroke();
                 }
 
-                // 選択中の図形には「ルビ変形ハンドル（●頂点・◆辺カーブ）」をオーバーレイ描画
+                // ●頂点ルビハンドルのみ描画（◆はなし）
                 if (activeLayer && activeLayer.id === layer.id) {
                     ctx.setLineDash([4, 4]);
                     ctx.strokeStyle = '#34d399';
@@ -1181,29 +1510,14 @@
                     ctx.stroke();
                     ctx.setLineDash([]);
 
-                    const handles = getRubyHandles(layer);
-                    handles.forEach(h => {
-                        if (h.kind === 'vertex') {
-                            // 頂点ハンドル（緑●）
-                            ctx.beginPath();
-                            ctx.arc(h.lx, h.ly, 9, 0, Math.PI * 2);
-                            ctx.fillStyle = '#10b981';
-                            ctx.fill();
-                            ctx.lineWidth = 2.5;
-                            ctx.strokeStyle = '#ffffff';
-                            ctx.stroke();
-                        } else {
-                            // 辺カーブハンドル（黄色◆）
-                            ctx.save();
-                            ctx.translate(h.lx, h.ly);
-                            ctx.rotate(Math.PI / 4);
-                            ctx.fillStyle = '#facc15';
-                            ctx.fillRect(-6, -6, 12, 12);
-                            ctx.lineWidth = 2;
-                            ctx.strokeStyle = '#000000';
-                            ctx.strokeRect(-6, -6, 12, 12);
-                            ctx.restore();
-                        }
+                    getRubyHandles(layer).forEach(h => {
+                        ctx.beginPath();
+                        ctx.arc(h.lx, h.ly, 9, 0, Math.PI * 2);
+                        ctx.fillStyle = '#10b981';
+                        ctx.fill();
+                        ctx.lineWidth = 2.5;
+                        ctx.strokeStyle = '#ffffff';
+                        ctx.stroke();
                     });
                 }
             }
@@ -1226,6 +1540,13 @@
                 } else {
                     ctx.filter = `blur(${layer.blur}px) brightness(${layer.brightness}%) ${filterMap[layer.filter] || ''}`;
                     ctx.drawImage(layer.img, -w / 2, -h / 2, w, h);
+                }
+
+                if (activeLayer && activeLayer.id === layer.id) {
+                    ctx.strokeStyle = '#58a6ff';
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([6, 6]);
+                    ctx.strokeRect(-w / 2, -h / 2, w, h);
                 }
             }
             else if (layer.type === 'text') {
@@ -1276,40 +1597,85 @@
                         ctx.stroke();
                     }
                 });
+
+                // テキスト選択時：拡大専用ルビハンドル（水色●）を描画
+                if (activeLayer && activeLayer.id === layer.id) {
+                    const { hw, hh } = getTextBounds(layer);
+                    ctx.strokeStyle = '#38bdf8';
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([5, 5]);
+                    ctx.strokeRect(-hw, -hh, hw * 2, hh * 2);
+                    ctx.setLineDash([]);
+
+                    getRubyHandles(layer).forEach(h => {
+                        ctx.beginPath();
+                        ctx.arc(h.lx, h.ly, 8, 0, Math.PI * 2);
+                        ctx.fillStyle = '#0ea5e9';
+                        ctx.fill();
+                        ctx.lineWidth = 2;
+                        ctx.strokeStyle = '#ffffff';
+                        ctx.stroke();
+                    });
+                }
             }
             else if (layer.type === 'mosaic') {
-                ctx.restore();
-                const mx = Math.floor(layer.x - layer.w / 2);
-                const my = Math.floor(layer.y - layer.h / 2);
-                const mw = Math.max(10, layer.w);
-                const mh = Math.max(10, layer.h);
+                // ルビ頂点多角形クリップ領域でモザイクを描画
+                traceRubyPolygonPath(ctx, layer);
+                ctx.clip();
+
+                // ルビ頂点の外接矩形を算出してモザイク化
+                const nodes = layer.rubyNodes || createDefaultRubyNodes('rect', layer.w, layer.h);
+                let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+                nodes.forEach(n => {
+                    if (n.vx < minX) minX = n.vx;
+                    if (n.vx > maxX) maxX = n.vx;
+                    if (n.vy < minY) minY = n.vy;
+                    if (n.vy > maxY) maxY = n.vy;
+                });
+
+                const worldMinX = Math.max(0, Math.floor(layer.x + minX));
+                const worldMinY = Math.max(0, Math.floor(layer.y + minY));
+                const worldW = Math.min(canvas.width - worldMinX, Math.max(10, Math.ceil(maxX - minX)));
+                const worldH = Math.min(canvas.height - worldMinY, Math.max(10, Math.ceil(maxY - minY)));
 
                 try {
-                    const imgData = ctx.getImageData(mx, my, mw, mh);
+                    const imgData = ctx.getImageData(worldMinX, worldMinY, worldW, worldH);
                     const size = layer.tileSize;
-                    for (let y = 0; y < mh; y += size) {
-                        for (let x = 0; x < mw; x += size) {
-                            const p = (y * mw + x) * 4;
+                    for (let py = 0; py < worldH; py += size) {
+                        for (let px = 0; px < worldW; px += size) {
+                            const p = (py * worldW + px) * 4;
                             ctx.fillStyle = `rgb(${imgData.data[p]},${imgData.data[p+1]},${imgData.data[p+2]})`;
-                            if (layer.shape === 'rect') {
-                                ctx.fillRect(mx + x, my + y, size, size);
-                            } else {
-                                ctx.beginPath();
-                                ctx.arc(mx + x + size/2, my + y + size/2, size/2, 0, Math.PI*2);
-                                ctx.fill();
-                            }
+                            const localDrawX = (worldMinX - layer.x) + px;
+                            const localDrawY = (worldMinY - layer.y) + py;
+                            ctx.fillRect(localDrawX, localDrawY, size, size);
                         }
                     }
                 } catch(e) {}
-                ctx.save();
-            }
 
-            // 図形以外のレイヤー選択枠表示（書き出し時は activeLayer=null なので消える）
-            if (activeLayer && activeLayer.id === layer.id && layer.type !== 'shape') {
-                ctx.strokeStyle = '#58a6ff';
-                ctx.lineWidth = 2;
-                ctx.setLineDash([6, 6]);
-                ctx.strokeRect(-100, -50, 200, 100);
+                ctx.restore();
+                ctx.save();
+                ctx.translate(layer.x, layer.y);
+                ctx.rotate(((layer.rotation || 0) * Math.PI) / 180);
+
+                // モザイク選択時：緑●頂点ルビハンドルを描画
+                if (activeLayer && activeLayer.id === layer.id) {
+                    traceRubyPolygonPath(ctx, layer);
+                    ctx.setLineDash([4, 4]);
+                    ctx.strokeStyle = '#34d399';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+
+                    getRubyHandles(layer).forEach(h => {
+                        ctx.beginPath();
+                        ctx.arc(h.lx, h.ly, 9, 0, Math.PI * 2);
+                        ctx.fillStyle = '#10b981';
+                        ctx.fill();
+                        ctx.lineWidth = 2.5;
+                        ctx.strokeStyle = '#ffffff';
+                        ctx.stroke();
+                    });
+                }
             }
 
             ctx.restore();
